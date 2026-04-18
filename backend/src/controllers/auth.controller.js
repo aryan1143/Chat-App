@@ -1,12 +1,13 @@
 import { generateJWT } from "../lib/utils.js";
 import User from "../models/user.model.js";
 import bcrypt from 'bcryptjs'
+import cloudinary from '../lib/cloudinary.js'
 
 //function to signup/create user in DB-------------
 export const signup = async (req, res) => {
     const { fullName, email, password } = req.body;
     try {
-        if(!fullName || !email || !password) {
+        if (!fullName || !email || !password) {
             return res.status(400).json({ message: "All feilds are required" });
         }
 
@@ -51,10 +52,81 @@ export const signup = async (req, res) => {
     }
 }
 
-export const login = (req, res) => {
-    res.send("Login Route !");
+//function to login/verify user in DB-------------
+export const login = async (req, res) => {
+    const { email, password } = req.body;
+
+    try {
+        if (!email || !password) {
+            return res.status(400).json({ message: "All feilds are required" });
+        }
+
+        //checking if user exists in the DB
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(400).json({ message: "Invalid credentials" });
+        }
+
+        //checking if provided password is correct or not
+        const isPasswordCorrect = await bcrypt.compare(password, user.password);
+        if (!isPasswordCorrect) {
+            return res.status(400).json({ message: "Invalid credentials" });
+        }
+
+        //generating the JWT
+        generateJWT(user._id, res);
+        res.status(200).json({
+            id: user._id,
+            fullName: user.fullName,
+            email: user.email,
+            profilePic: user.profilePic
+        })
+    } catch (error) {
+        console.log("error in ligin controller:", error.message);
+        res.status(500).json({ message: "Internal server error!" });
+    }
+
 }
 
+//function to logout the user---------------------
 export const logout = (req, res) => {
-    res.send("Logout Route !");
+    try {
+        res.cookie("jwt", "", { maxAge: 0 });
+        res.status(200).json({ message: "Logged out successfully" });
+    } catch (error) {
+        console.log("error in logout controller:", error.message);
+        res.status(500).json({ message: "Internal server error!" });
+    }
+}
+
+//function to update user data in DB--------------
+export const updateProfile = async (req, res) => {
+    const { profilePic } = req.body;
+    const userId = req.user._id;
+
+    try {
+        if (!profilePic) {
+            return res.status(400).json({ message: "Profile pic is required" });
+        }
+    
+        const uploadResponse = await cloudinary.uploader.upload(profilePic);
+        const updatedUser = await User.findByIdAndUpdate(userId, {profilePic: uploadResponse.secure_url}, {returnDocument: 'after'});
+
+        res.status(200).json(updatedUser);
+    } catch (error) {
+        console.log("error in update-profile controller:", error.message);
+        res.status(500).json({ message: "Internal server error!" });
+    }
+}
+
+//function to check user -------------------------
+export const checkUser = (req, res) => {
+    try {
+        const user = req.user;
+        res.status(200).json(user);
+    } catch (error) {
+        console.log("error in check-user controller:", error.message);
+        res.status(500).json({ message: "Internal server error!" });
+    }
 }
