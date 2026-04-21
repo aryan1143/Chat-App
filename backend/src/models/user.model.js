@@ -10,7 +10,13 @@ const userSchema = new mongoose.Schema(
         },
         fullName: {
             type: String,
-            required: true
+            required: true,
+            minlength: 3,
+            maxlength: 40
+        },
+        bio: {
+            type: String,
+            default: "Hi, Nice to meet you"
         },
         password: {
             type: String,
@@ -19,7 +25,7 @@ const userSchema = new mongoose.Schema(
         },
         profilePic: {
             type: String,
-            default: ""
+            default: "https://res.cloudinary.com/dujfvcxjl/image/upload/v1776753314/defaultpfp.png"
         }
     },
     {timestamps: true}
