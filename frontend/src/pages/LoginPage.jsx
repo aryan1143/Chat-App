@@ -35,7 +35,7 @@ function LoginPage() {
           <MessageSquare className='size-8 text-primary' />
         </div>
         <h1 className='text-2xl font-bold mt-2'>Login</h1>
-        <p className='text-primary-content/50'>Login to start your experience</p>
+        <p className='text-base-content/60'>Login to start your experience</p>
         <form onSubmit={handleSubmit} className='flex flex-col gap-5 lg:w-4/10 w-8/10 mt-5 justify-center items-center'>
           <label className="input validator">
             <svg className="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -98,7 +98,7 @@ function LoginPage() {
           </button>
         </form>
 
-        <p className='text-primary-content/50'>Don't have any account? <Link className='link link-primary' to={"/signup"} >Create Account</Link></p>
+        <p className='text-base-content/60'>Don't have any account? <Link className='link link-primary' to={"/signup"} >Create Account</Link></p>
 
       </div>
 

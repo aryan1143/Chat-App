@@ -26,9 +26,13 @@ const userSchema = new mongoose.Schema(
         profilePic: {
             type: String,
             default: "https://res.cloudinary.com/dujfvcxjl/image/upload/v1776753314/defaultpfp.png"
+        },
+        profilePicId: {
+            type: String,
+            default: ""
         }
     },
-    {timestamps: true}
+    { timestamps: true }
 );
 
 //exporting user model

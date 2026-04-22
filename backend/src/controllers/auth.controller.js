@@ -1,7 +1,8 @@
 import { generateJWT } from "../lib/utils.js";
 import User from "../models/user.model.js";
 import bcrypt from 'bcryptjs'
-import cloudinary from '../lib/cloudinary.js'
+// import cloudinary from '../lib/cloudinary.js'
+import imagekit from "../lib/imagekit.js";
 
 //function to signup/create user in DB-------------
 export const signup = async (req, res) => {
@@ -116,14 +117,26 @@ export const updateProfile = async (req, res) => {
             try {
                 const user = await User.findById(userId);
                 const oldProfileURL = user.profilePic;
-                const publicId = oldPicUrl.split('/').pop().split('.')[0];
-                await cloudinary.uploader.destroy(publicId);
+                const isDefaultPfp = oldProfileURL.split('/').pop().split('.')[0] === "defaultpfp";
+                if (!isDefaultPfp && user.profilePicId) {
+                    try {
+                        await imagekit.deleteFile(user.profilePicId);
+                    } catch (deleteError) {
+                        throw new Error("Failed to delete old image:", deleteError.message);
+                    }
+                }
             } catch (error) {
                 console.log("Error in update-profile-profile-url-delete auth-controller:", error.message);
             }
 
-            const uploadResponse = await cloudinary.uploader.upload(profilePic);
-            updateFeilds.profilePic = uploadResponse.secure_url;
+            const uploadResponse = await imagekit.upload({
+                file: profilePic,
+                fileName: `profile_${Date.now()}.jpg`,
+                folder: "/user_profiles/",
+                useUniqueFileName: true
+            });
+            updateFeilds.profilePic = uploadResponse.url;
+            updateFeilds.profilePicId = uploadResponse.fileId;
         }
 
         //updating profile bio

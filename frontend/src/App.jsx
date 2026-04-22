@@ -21,7 +21,7 @@ function App() {
 
   if (isCheckingAuth && !authUser) {
     return (
-      <div className="h-dvh w-dvw flex justify-center items-center">
+      <div className="h-dvh w-dvw flex justify-center items-center bg-base-100 text-base-content">
         <span className="loading loading-bars loading-xl"></span>
       </div>
     )
@@ -30,7 +30,7 @@ function App() {
 
   return (
     <>
-      <div className="h-dvh w-dvw flex flex-col">
+      <div className="h-dvh w-dvw flex flex-col bg-base-100 text-base-content">
         <NavBar />
 
         <Routes>

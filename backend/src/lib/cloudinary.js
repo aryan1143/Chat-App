@@ -9,4 +9,8 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
+console.log("Cloud Name:", process.env.CLOUDINARY_CLOUD_NAME ? "Loaded" : "MISSING!");
+console.log("API Key:", process.env.CLOUDINARY_API_KEY ? "Loaded" : "MISSING!");
+console.log("API Secret:", process.env.CLOUDINARY_API_SECRET ? "Loaded" : "MISSING!");
+
 export default cloudinary;
