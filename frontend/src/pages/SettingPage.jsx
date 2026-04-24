@@ -20,9 +20,9 @@ function SettingPage() {
   } = useSettingStore();
 
   return (
-    <div className="relative grow w-screen grid grid-cols-1 lg:grid-cols-[2fr_8fr] items-center">
+    <div className="grow w-screen h-full flex flex-col lg:grid lg:grid-cols-[2fr_8fr] lg:items-center">
       {/* left side */}
-      <div className="h-full lg:border-r border-base-content/50 p-4 text-base-content">
+      <div className="sticky top-15 z-30 bg-base-100 lg:h-full h-fit lg:border-r border-base-content/50 p-4 text-base-content">
         <ul className="w-full flex flex-col gap-2 font-semibold">
           <li className="p-2 w-full">
             <input
@@ -38,7 +38,7 @@ function SettingPage() {
               htmlFor="theme-setting"
               className="w-full flex gap-2 items-center p-3 rounded-sm cursor-pointer
              lg:hover:bg-base-content/10 
-             lg:peer-checked:bg-primary lg:peer-checked:text-primary-content
+             peer-checked:bg-primary peer-checked:text-primary-content
              lg:peer-checked:hover:bg-primary/85"
             >
               <Palette className="size-5" />
@@ -59,7 +59,7 @@ function SettingPage() {
               htmlFor="notificationAndSound-setting"
               className="w-full flex gap-2 items-center p-3 rounded-sm cursor-pointer 
              lg:hover:bg-base-content/10 
-             lg:peer-checked:bg-primary lg:peer-checked:text-primary-content
+             peer-checked:bg-primary peer-checked:text-primary-content
              lg:peer-checked:hover:bg-primary/85"
             >
               <Bell className="size-5" />
@@ -80,7 +80,7 @@ function SettingPage() {
               htmlFor="privacy-setting"
               className="w-full flex gap-2 items-center p-3 rounded-sm cursor-pointer 
              lg:hover:bg-base-content/10 
-             lg:peer-checked:bg-primary lg:peer-checked:text-primary-content
+             peer-checked:bg-primary peer-checked:text-primary-content
              lg:peer-checked:hover:bg-primary/85"
             >
               <UserLock className="size-5" />
@@ -91,7 +91,7 @@ function SettingPage() {
       </div>
 
       {/* right side */}
-      <div className="h-full">
+      <div className="h-full overflow-y-scroll scrollbar-thumb-base-content/60 ky-700 scrollbar-track-base-content/20 scrollbar-thin [&::-webkit-scrollbar-button]:hidden">
         {/* theme settings */}
         {currentSetting === "theme" && (
           <div className="h-full w-full p-5 flex flex-wrap gap-4 items-center justify-center">
@@ -133,7 +133,7 @@ function SettingPage() {
         {/* notification and sound settings */}
         {currentSetting === "notificationAndSound" && (
           <div className="h-full w-full p-5 flex flex-col items-center gap-3">
-            <fieldset className="fieldset bg-base-100 border-base-400 rounded-box w-9/10 border p-4 mx-5">
+            <fieldset className="fieldset bg-base-100 border-base-400 rounded-box w-9/10 border p-4 mx-2">
               <legend className="fieldset-legend text-xl">
                 Notification & Sound
               </legend>
@@ -152,7 +152,7 @@ function SettingPage() {
         {/* Privacy settings */}
         {currentSetting === "privacy" && (
           <div className="h-full w-full p-5 flex flex-col items-center gap-3">
-            <fieldset className="fieldset bg-base-100 border-base-400 rounded-box w-9/10 border p-4 mx-5">
+            <fieldset className="fieldset bg-base-100 border-base-400 rounded-box w-9/10 border p-4 mx-2">
               <legend className="fieldset-legend text-xl">Privacy</legend>
               <label className="label py-5 px-3 text-xl flex items-center gap-3">
                 <input onChange={()=>setPrivacySetting({lastSeenAndOnline: !lastSeenAndOnline})} type="checkbox" checked={lastSeenAndOnline} className="toggle" />

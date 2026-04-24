@@ -1,17 +1,30 @@
 import React from 'react'
-import { Link } from 'react-router-dom';
-import { LogOut, MessageSquare, Settings, User } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { ArrowLeft, LogOut, MessageSquare, Settings, User } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
+import { useChatAndMessageStore } from '../store/useChatAndMessageStore';
 
 function NavBar() {
   const { authUser, logOut } = useAuthStore();
 
+  const pathname = useLocation().pathname;
+
+  const {selectedUser} = useChatAndMessageStore();
+
   return (
-    <header className='navbar border-b border-base-300 bg-base-100 px-4 md:px-6'>
+    <header className={`${selectedUser && 'hidden md:flex'} sticky top-0 z-20 navbar border-b border-base-300 bg-base-100 px-4 md:px-6`}>
       <div className='flex-1'>
         <Link to='/' className='btn btn-ghost gap-2 text-xl normal-case'>
+        {pathname !== '/profile' && pathname !== '/setting' ? 
+        (<>
           <MessageSquare className='size-6 text-primary' />
           <span>Chat App</span>
+        </>) : 
+        (<>
+        <ArrowLeft />
+        Back
+        </>)
+      }
         </Link>
       </div>
 

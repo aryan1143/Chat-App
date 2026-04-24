@@ -1,47 +1,61 @@
-import React, { useState } from 'react';
-import { Eye, EyeOff, MessageSquare } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import AuthPagePattern from '../components/AuthPagePattern';
-import toast from 'react-hot-toast';
-import { useAuthStore } from '../store/useAuthStore';
+import React, { useState } from "react";
+import { Eye, EyeOff, MessageSquare } from "lucide-react";
+import { Link } from "react-router-dom";
+import AuthPagePattern from "../components/AuthPagePattern";
+import toast from "react-hot-toast";
+import { useAuthStore } from "../store/useAuthStore";
+import { useChatAndMessageStore } from "../store/useChatAndMessageStore";
 
 function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   const { isSigningUp, signUp } = useAuthStore();
 
+  const { setDefault } = useChatAndMessageStore();
+
   const [formData, setFormData] = useState({
     fullName: null,
     email: null,
-    password: null
+    password: null,
   });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  }
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.fullName.trim()) return toast.error("Full name is required");
     if (!formData.email.trim()) return toast.error("Email name is required");
-    if (!formData.password.trim()) return toast.error("Password name is required");
+    if (!formData.password.trim())
+      return toast.error("Password name is required");
+    setDefault();
     signUp(formData);
   };
 
   return (
-    <div className='grow w-screen grid grid-cols-1 lg:grid-cols-2'>
+    <div className="h-full w-screen grid grid-cols-1 lg:grid-cols-2">
       {/* left side */}
-      <div className='flex h-full flex-col gap-2 justify-center items-center px-4 py-8'>
+      <div className="flex h-full flex-col gap-2 justify-center items-center px-4 py-8">
         {/*message-icon*/}
-        <div className='p-3 bg-primary/20 rounded-xl'>
-          <MessageSquare className='size-8 text-primary' />
+        <div className="p-3 bg-primary/20 rounded-xl">
+          <MessageSquare className="size-8 text-primary" />
         </div>
-        <h1 className='text-2xl font-bold mt-2'>Create Account</h1>
-        <p className='text-base-content/60'>Get started with your free account</p>
-        <form onSubmit={handleSubmit} className='flex flex-col gap-5 lg:w-4/10 w-8/10 mt-5 justify-center items-center'>
+        <h1 className="text-2xl font-bold mt-2">Create Account</h1>
+        <p className="text-base-content/60">
+          Get started with your free account
+        </p>
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col gap-5 lg:w-4/10 w-8/10 mt-5 justify-center items-center"
+        >
           <label className="input validator">
-            <svg className="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <svg
+              className="h-[1em] opacity-50"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+            >
               <g
                 strokeLinejoin="round"
                 strokeLinecap="round"
@@ -54,7 +68,7 @@ function SignUpPage() {
               </g>
             </svg>
             <input
-              name='fullName'
+              name="fullName"
               type="text"
               required
               placeholder="Enter your Full Name..."
@@ -65,7 +79,11 @@ function SignUpPage() {
             />
           </label>
           <label className="input validator">
-            <svg className="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <svg
+              className="h-[1em] opacity-50"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+            >
               <g
                 strokeLinejoin="round"
                 strokeLinecap="round"
@@ -77,10 +95,21 @@ function SignUpPage() {
                 <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
               </g>
             </svg>
-            <input onChange={handleChange} onBlur={handleChange} name='email' type="email" placeholder="Enter your email..." required />
+            <input
+              onChange={handleChange}
+              onBlur={handleChange}
+              name="email"
+              type="email"
+              placeholder="Enter your email..."
+              required
+            />
           </label>
           <label className="input validator">
-            <svg className="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <svg
+              className="h-[1em] opacity-50"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+            >
               <g
                 strokeLinejoin="round"
                 strokeLinecap="round"
@@ -88,9 +117,7 @@ function SignUpPage() {
                 fill="none"
                 stroke="currentColor"
               >
-                <path
-                  d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"
-                ></path>
+                <path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"></path>
                 <circle cx="16.5" cy="7.5" r=".5" fill="currentColor"></circle>
               </g>
             </svg>
@@ -99,35 +126,48 @@ function SignUpPage() {
               required
               placeholder="Password"
               minLength="8"
-              name='password'
+              name="password"
               onChange={handleChange}
               onBlur={handleChange}
             />
-            <button type='button' className='cursor-pointer' onClick={() =>
-              setShowPassword(!showPassword)
-            }>
-              {showPassword ?
-                <Eye /> : <EyeOff />}
+            <button
+              type="button"
+              className="cursor-pointer"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <Eye /> : <EyeOff />}
             </button>
           </label>
-          <button type='submit' disabled={isSigningUp} className="btn btn-primary w-full">{isSigningUp ?
-            <>
-              Creating Account <span className="loading loading-dots loading-xs"></span>
-            </>
-            : "Create Account"}
+          <button
+            type="submit"
+            disabled={isSigningUp}
+            className="btn btn-primary w-full"
+          >
+            {isSigningUp ? (
+              <>
+                Creating Account{" "}
+                <span className="loading loading-dots loading-xs"></span>
+              </>
+            ) : (
+              "Create Account"
+            )}
           </button>
         </form>
 
-        <p className='text-base-content/60'>Already have an account? <Link className='link link-primary' to={"/login"} >Login</Link></p>
-
+        <p className="text-base-content/60">
+          Already have an account?{" "}
+          <Link className="link link-primary" to={"/login"}>
+            Login
+          </Link>
+        </p>
       </div>
 
       {/* right side */}
-      <div className='hidden h-full flex-col gap-2 justify-center items-center border-l border-base-300/60 bg-base-200/35 lg:flex'>
+      <div className="hidden h-full flex-col gap-2 justify-center items-center border-l border-base-300/60 bg-base-200/35 lg:flex">
         <AuthPagePattern />
       </div>
     </div>
-  )
+  );
 }
 
-export default SignUpPage
+export default SignUpPage;

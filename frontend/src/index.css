@@ -2,6 +2,9 @@
 @plugin "daisyui" {
 	themes: "all";
 }
+@plugin 'tailwind-scrollbar' {
+    nocompatible: true;
+}
 
 button {
 	cursor: pointer;

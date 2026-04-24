@@ -37,7 +37,6 @@ const getInitialSound = () => {
   if (typeof window === "undefined") return false;
 
   const savedSoundValue = getDataLocal("sound");
-  console.log(savedSoundValue)
   return savedSoundValue;
 };
 

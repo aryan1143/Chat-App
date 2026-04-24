@@ -54,7 +54,7 @@ function ProfilePage() {
 
 
   return (
-    <div className='relative grow w-screen grid grid-cols-1 lg:grid-cols-[3fr_7fr] items-center'>
+    <div className='relative h-full w-screen grid grid-cols-1 lg:grid-cols-[3fr_7fr] items-center overflow-y-scroll'>
       {/* left side--- */}
       <div className='lg:h-9/10 h-9/10 flex flex-col gap-5 items-center px-5 lg:px-15'>
         {/* profile info */}

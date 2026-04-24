@@ -3,14 +3,7 @@ import Cropper from 'react-easy-crop';
 import { Camera } from 'lucide-react';
 import getCroppedImg from '../lib/cropUtis';
 import { useAuthStore } from '../store/useAuthStore';
-
-const readFile = (file) => {
-    return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.addEventListener('load', () => resolve(reader.result), false);
-        reader.readAsDataURL(file);
-    });
-};
+import readFile from '../lib/readImageFile';
 
 export default function ProfilePicCropper() {
     const [imageSrc, setImageSrc] = useState(null);
