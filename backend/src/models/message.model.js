@@ -12,6 +12,10 @@ const messageSchema = new Schema(
             required: true,
             ref: 'User'
         },
+        status: {
+            type: String,
+            enum: ["sending", "sent", "received", "seen"]
+        },
         text: {
             type: String,
         },

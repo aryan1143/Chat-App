@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { debounce, throttle } from "../lib/utils";
 import { axiosInstance } from "../lib/axios";
 import toast from "react-hot-toast";
+import { useAuthStore } from "./useAuthStore";
 
 export const useConnectionStore = create((set, get) => ({
   query: "",
@@ -11,6 +12,7 @@ export const useConnectionStore = create((set, get) => ({
   isGettingReceivedRequests: false,
   friends: [],
   isGettingFriends: false,
+  friendsOnline: [],
 
   getReceivedRequests: async () => {
     try {
@@ -33,6 +35,7 @@ export const useConnectionStore = create((set, get) => ({
       set({ isGettingFriends: true });
       const response = await axiosInstance.get("/connection/find/friends");
       set({ friends: response.data });
+      useAuthStore.getState().connectSocket();
     } catch (error) {
       console.log(
         "Error in getFriends in connection store : ",

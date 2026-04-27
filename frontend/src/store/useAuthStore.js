@@ -3,6 +3,7 @@ import { axiosInstance } from "../lib/axios";
 import toast from "react-hot-toast";
 import { LogOut } from "lucide-react";
 import { io } from "socket.io-client";
+import { useConnectionStore } from "./useConnectionStore";
 
 const BASE_URL = "http://localhost:3001";
 
@@ -22,7 +23,6 @@ export const useAuthStore = create((set, get) => ({
     try {
       const response = await axiosInstance.get("/auth/check");
       set({ authUser: response.data });
-      get().connectSocket();
     } catch (error) {
       console.log("Error in check-Auth: ", error);
       set({ authUser: null });
@@ -101,21 +101,40 @@ export const useAuthStore = create((set, get) => ({
     const { authUser } = get();
     if (!authUser || get().socket?.connected) return;
 
+    const friendsList = useConnectionStore.getState().friends;
+    const friendsIdList = friendsList.map((user) => user._id);
+
     const socket = io(BASE_URL, {
       query: {
-        userId: authUser._id
-      }
+        userId: authUser._id,
+        friendsIdList,
+      },
     });
     socket.connect();
-    set({socket: socket});
+    set({ socket: socket });
 
-    socket.on("getOnlineUsers", (users)=> {
-      console.log(users)
-    })
+    socket.on("getOnlineFriends", (data) => {
+      useConnectionStore.setState({ friendsOnline: data });
+    });
+
+    socket.on("friendOffline", (id) => {
+      
+      useConnectionStore.setState((state) => ({
+        friendsOnline: state.friendsOnline.filter(
+          (onlineFriendId) => onlineFriendId != id,
+        ),
+      }));
+    });
+
+    socket.on("friendOnline", (id) => {
+      useConnectionStore.setState((state) => ({
+        friendsOnline: Array.from(new Set([...state.friendsOnline, id])),
+      }));
+    });
   },
 
   //function to disconnect from the socket.io
   disConnectSocket: async () => {
-    if(get().socket?.connected) get().socket.disconnect();
+    if (get().socket?.connected) get().socket.disconnect();
   },
 }));

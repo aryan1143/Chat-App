@@ -22,8 +22,6 @@ function ChatArea() {
   const [showUserInfo, setShowUserInfo] = useState(false);  
   const profileOpenBtnRef = useRef(null);
 
-  console.log(showUserInfo)
-
   const messageAreaRef = useRef(null);
 
   const { authUser } = useAuthStore();

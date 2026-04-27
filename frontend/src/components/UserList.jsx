@@ -1,6 +1,12 @@
 import React, { useState } from "react";
 import { useChatAndMessageStore } from "../store/useChatAndMessageStore";
-import { UserPlus, UserRoundCheck, UserRoundPlus, Users, X } from "lucide-react";
+import {
+  UserPlus,
+  UserRoundCheck,
+  UserRoundPlus,
+  Users,
+  X,
+} from "lucide-react";
 import { useConnectionStore } from "../store/useConnectionStore";
 import FriendListItemSkeleton from "./FriendListItemSkeleton";
 
@@ -9,7 +15,15 @@ function UserList({ setIsSearchingFriends }) {
   const { users, setSelectedUser, selectedUser, getMessages } =
     useChatAndMessageStore();
 
-  const { receivedRequests, isGettingReceivedRequests, throttledAcceptRequest, throttledRejectRequest, friends, isGettingFriends } = useConnectionStore();
+  const {
+    receivedRequests,
+    isGettingReceivedRequests,
+    throttledAcceptRequest,
+    throttledRejectRequest,
+    friends,
+    isGettingFriends,
+    friendsOnline,
+  } = useConnectionStore();
 
   return (
     <div className="relative flex flex-col h-full min-h-0 w-full">
@@ -85,7 +99,7 @@ function UserList({ setIsSearchingFriends }) {
                 <p className="text-base font-semibold truncate">
                   {user.fullName}
                 </p>
-                <p className="text-sm text-base-content/70">Offline</p>
+                <p className="text-sm text-base-content/70">{friendsOnline.includes(user._id) ? 'Online' : 'Oflline'}</p>
               </div>
             </button>
           ))}

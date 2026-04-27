@@ -13,21 +13,58 @@ const io = new Server(server, {
 });
 
 //online users object userId => [socketIds]
-const onlineUsers = {};
+const onlineUsersMap = new Map();
 
 io.on("connection", (socket) => {
   const userId = socket.handshake.query.userId;
 
-  //adding user to online users list with all sockets
-  if (!onlineUsers[userId]) onlineUsers[userId] = [];
-  onlineUsers[userId].push(socket.id);
-  io.emit("getOnlineUsers", Object.keys(onlineUsers));
+  //making sure the friendsIdList is an array
+  let friendsIdList = socket.handshake.query.friendsIdList || [];
+  if (typeof friendsIdList === "string") {
+    friendsIdList = friendsIdList.split(",");
+  }
+
+  if (!userId) return;
+
+  //adding user with socket in the onlineUsersMap
+  const userSockets = onlineUsersMap.get(userId) || [];
+  onlineUsersMap.set(userId, [...userSockets, socket.id]);
+
+  //function to get friends status if they are online or offline
+  const getFriendsStatus = () =>
+    friendsIdList.filter((id) => onlineUsersMap.has(id));
+
+  //emiting all the online friends that this user is now online
+  friendsIdList.forEach((id) => {
+    const friendSockets = onlineUsersMap.get(id) || [];
+
+    friendSockets.forEach((socket) => {
+      io.to(socket).emit("friendOnline", userId);
+    });
+  });
+
+  //emiting the user that which of his friends are online
+  socket.emit("getOnlineFriends", getFriendsStatus());
 
   socket.on("disconnect", () => {
-    //removing offline user from online users list with each ofline socket
-    onlineUsers[userId] = onlineUsers[userId].filter((id) => id !== socket.id);
-    if (onlineUsers[userId].length === 0) delete onlineUsers[userId];
-    io.emit("getOnlineUsers", Object.keys(onlineUsers));
+    const userSockets = onlineUsersMap.get(userId) || [];
+
+    const updatedSockets = userSockets.filter((id) => id !== socket.id);
+
+    if (updatedSockets.length === 0) {
+      onlineUsersMap.delete(userId);
+    } else {
+      onlineUsersMap.set(userId, updatedSockets);
+    }
+
+    //emiting all the online friends that this user is now offline
+    friendsIdList.forEach((id) => {
+      const friendSockets = onlineUsersMap.get(id) || [];
+
+      friendSockets.forEach((socket) => {
+        io.to(socket).emit("friendOffline", userId);
+      });
+    });
   });
 });
 
