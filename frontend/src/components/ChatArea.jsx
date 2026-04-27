@@ -13,11 +13,16 @@ import readFile from "../lib/readImageFile";
 import { formatMessageTime } from "../lib/utils";
 import { useConnectionStore } from "../store/useConnectionStore";
 import MessageBubbleSkeleton from "./MessageBubbleSkeleton";
+import ShowProfileBox from "./ShowProfileBox";
 
 function ChatArea() {
   const [textMessage, setTextMessage] = useState("");
   const [imageSrc, setImageSrc] = useState("");
   const [selectedUserData, setSelectedUserData] = useState({});
+  const [showUserInfo, setShowUserInfo] = useState(false);  
+  const profileOpenBtnRef = useRef(null);
+
+  console.log(showUserInfo)
 
   const messageAreaRef = useRef(null);
 
@@ -90,7 +95,10 @@ function ChatArea() {
 
         <div className="flex flex-col-reverse w-full p-4 flex-1 overflow-y-scroll scrollbar-thumb-base-content/60 ky-700 scrollbar-track-base-content/20 scrollbar-thin [&::-webkit-scrollbar-button]:hidden">
           {Array.from({ length: 6 }).map((_, index) => (
-            <MessageBubbleSkeleton key={`message-skeleton-${index}`} isOwn={index % 2 !== 0} />
+            <MessageBubbleSkeleton
+              key={`message-skeleton-${index}`}
+              isOwn={index % 2 !== 0}
+            />
           ))}
         </div>
 
@@ -104,25 +112,43 @@ function ChatArea() {
   }
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="relative w-full h-full flex flex-col">
       {/* user profile data */}
       <div className="w-full flex gap-2 items-center bg-base-100 p-4 py-2 border-b border-base-content/20">
         <button onClick={() => setSelectedUser(null)}>
           <ArrowLeft />
         </button>
-        <img
-          src={selectedUserData?.profilePic}
-          className="rounded-full size-10"
-        />
-        <h2 className="truncate w-5/10">{selectedUserData.fullName}</h2>
+        <button
+          ref={profileOpenBtnRef}
+          onClick={() => setShowUserInfo(prev => !prev)}
+          className="flex items-center w-4/10 gap-1 truncate"
+        >
+          <img
+            src={selectedUserData?.profilePic}
+            className="rounded-full size-10"
+          />
+          <div className="flex flex-col w-full justify-start">
+            <h2 className="truncate mr-auto">{selectedUserData.fullName}</h2>
+            <p className="truncate mr-auto text-xs text-base-content/60">
+              {selectedUserData.bio}
+            </p>
+          </div>
+        </button>
         <button className="ml-auto">
           <EllipsisVertical />
         </button>
       </div>
+      {showUserInfo && (
+        <ShowProfileBox
+          setShowUserInfo={setShowUserInfo}
+          userData={selectedUserData}
+          btnRef={profileOpenBtnRef}
+        />
+      )}
       {/* messages */}
       <div
         ref={messageAreaRef}
-        className="flex flex-col-reverse w-full p-4 flex-1 overflow-y-scroll scrollbar-thumb-base-content/60 ky-700 scrollbar-track-base-content/20 scrollbar-thin [&::-webkit-scrollbar-button]:hidden"
+        className="relative flex flex-col-reverse w-full p-4 flex-1 overflow-y-scroll scrollbar-thumb-base-content/60 ky-700 scrollbar-track-base-content/20 scrollbar-thin [&::-webkit-scrollbar-button]:hidden"
       >
         {messages &&
           !isGettingMessages &&
@@ -146,7 +172,10 @@ function ChatArea() {
                     <span className="mt-auto rounded-t-sm rounded-r-sm -mr-1 inline-block w-0 h-0 border-solid border-t-0 border-r-0 border-l-10 border-b-10 border-l-transparent border-r-transparent border-t-transparent border-b-base-300"></span>
                     <div className="p-1 w-fit rounded-md rounded-bl-xs bg-base-300 wrap-anywhere mr-5 lg:mr-10">
                       {message?.image && (
-                        <img className="w-50 rounded-sm" src={message.image} />
+                        <img
+                          className="w-50 lg:w-80 rounded-sm"
+                          src={message.image}
+                        />
                       )}
                       <p className="px-1">{message.text}</p>
                     </div>
@@ -165,7 +194,10 @@ function ChatArea() {
                   <div className="flex justify-end">
                     <div className="p-1 w-fit rounded-br-xs rounded-md bg-base-300 wrap-anywhere ml-5 lg:ml-10">
                       {message?.image && (
-                        <img className="w-50 rounded-sm" src={message.image} />
+                        <img
+                          className="w-50 lg:w-80 rounded-sm"
+                          src={message.image}
+                        />
                       )}
                       <p className="px-1">{message.text}</p>
                     </div>

@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import React from "react";
 import { useConnectionStore } from "../store/useConnectionStore";
+import FriendListItemSkeleton from "./FriendListItemSkeleton";
 
 function SearchAndAddFriends({ setIsSearchingFriends }) {
   const {
@@ -19,7 +20,6 @@ function SearchAndAddFriends({ setIsSearchingFriends }) {
     throttledAcceptRequest,
   } = useConnectionStore();
 
-  console.log(searchedUsers);
   return (
     <div className="relative flex flex-col h-full min-h-0 w-full">
       <div className="flex items-center gap-2 p-6 py-4">
@@ -43,6 +43,7 @@ function SearchAndAddFriends({ setIsSearchingFriends }) {
       {/* users list */}
       <div className="flex flex-col gap-2 min-h-0 grow overflow-y-auto overflow-x-hidden p-2 scrollbar-thumb-base-content/60 ky-700 scrollbar-track-base-content/20 scrollbar-thin [&::-webkit-scrollbar-button]:hidden">
         {/* search results will be here */}
+        {isSearchingUsers && <FriendListItemSkeleton />}
         {searchedUsers &&
           searchedUsers?.map((user) => (
             <div

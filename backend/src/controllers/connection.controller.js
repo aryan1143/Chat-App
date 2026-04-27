@@ -167,7 +167,7 @@ export const findFriends = async (req, res) => {
     const requestersData = await User.find({
       _id: { $in: requesterIDs },
     })
-      .select("_id fullName profilePic email")
+      .select("_id fullName profilePic email bio")
       .lean();
 
     const finalRequestersData = requestersData.map((user) => ({
