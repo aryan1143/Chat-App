@@ -52,19 +52,32 @@ export const findUsers = async (req, res) => {
     //modifing users list by adding connection status to know if user already have an connection or not
     const finalUsersList = users.map((user) => {
       if (existingConnections.length === 0)
-        return { ...user, connectionStatus: "none" };
+        return { ...user, connectionStatus: "none", connectionID: null };
 
       const connection = connectionMap.get(user._id.toString());
 
-      if (!connection) return { ...user, connectionStatus: "none" };
+      if (!connection)
+        return { ...user, connectionStatus: "none", connectionID: null };
 
       if (connection.status === "accepted")
-        return { ...user, connectionStatus: "friends" };
+        return {
+          ...user,
+          connectionStatus: "friends",
+          connectionID: connection._id,
+        };
 
       if (connection.requesterID.equals(requesterID)) {
-        return { ...user, connectionStatus: "sent" };
+        return {
+          ...user,
+          connectionStatus: "sent",
+          connectionID: connection._id,
+        };
       } else {
-        return { ...user, connectionStatus: "received" };
+        return {
+          ...user,
+          connectionStatus: "received",
+          connectionID: connection._id,
+        };
       }
     });
 
@@ -72,6 +85,103 @@ export const findUsers = async (req, res) => {
   } catch (error) {
     console.log("Error in findUsers connection-controller:", error.message);
     return res.status(500).json({ message: "Internal server error!" });
+  }
+};
+
+//function to find received friend requests
+export const findFriendRequests = async (req, res) => {
+  const userId = req?.user?._id;
+  try {
+    const connections = await Connections.find({
+      recipientID: userId,
+      status: "pending",
+    });
+
+    if (connections.length === 0)
+      return res.status(404).json({ message: "No requests found" });
+
+    //making connection map with userId -> connectionId
+    const connectionMap = new Map();
+    connections.forEach((c) => {
+      connectionMap.set(c.requesterID.toString(), c._id.toString());
+    });
+
+    //IDs of all requesters
+    const requesterIDs = [...connectionMap.keys()];
+
+    const requestersData = await User.find({
+      _id: { $in: requesterIDs },
+    })
+      .select("_id fullName profilePic email")
+      .lean();
+
+    const finalRequestersData = requestersData.map((user) => ({
+      ...user,
+      connectionID: connectionMap.get(user._id.toString()),
+    }));
+
+    return res.status(200).json(finalRequestersData);
+  } catch (error) {
+    console.log(
+      "Error in findFriendRequest connection-controller:",
+      error.message,
+    );
+    res.status(500).json({ message: "Internal server error!" });
+  }
+};
+
+//function to find received friend requests
+export const findFriends = async (req, res) => {
+  const userId = req?.user?._id.toString();
+  try {
+    const connections = await Connections.find({
+      $or: [
+        {
+          recipientID: userId,
+          status: "accepted",
+        },
+        {
+          requesterID: userId,
+          status: "accepted",
+        },
+      ],
+    });
+
+    if (connections.length === 0)
+      return res.status(404).json({ message: "No friends found" });
+
+    //making connection map with userId -> connectionId
+    const connectionMap = new Map();
+    connections.forEach((c) => {
+      const requester = c.requesterID.toString();
+      const recipient = c.recipientID.toString();
+
+      const otherUserId = requester === userId ? recipient : requester;
+
+      connectionMap.set(otherUserId, c._id.toString());
+    });
+
+    //IDs of all requesters
+    const requesterIDs = [...connectionMap.keys()];
+
+    const requestersData = await User.find({
+      _id: { $in: requesterIDs },
+    })
+      .select("_id fullName profilePic email")
+      .lean();
+
+    const finalRequestersData = requestersData.map((user) => ({
+      ...user,
+      connectionID: connectionMap.get(user._id.toString()),
+    }));
+
+    return res.status(200).json(finalRequestersData);
+  } catch (error) {
+    console.log(
+      "Error in findFriendRequest connection-controller:",
+      error.message,
+    );
+    res.status(500).json({ message: "Internal server error!" });
   }
 };
 

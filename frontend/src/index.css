@@ -1,72 +1,98 @@
 @import "tailwindcss";
 @plugin "daisyui" {
-	themes: "all";
+  themes: "all";
 }
 @plugin 'tailwind-scrollbar' {
-    nocompatible: true;
+  nocompatible: true;
 }
 
 button {
-	cursor: pointer;
+  cursor: pointer;
+}
+
+.bubble {
+  animation: jump 1.5s ease-in-out infinite;
+}
+
+@keyframes jump {
+  0%,
+  100% {
+    transform: translateY(0) scaleX(1);
+  }
+  50% {
+    transform: translateY(-50px) scaleX(1.05); /* Peak of jump */
+  }
+  90% {
+    transform: translateY(0) scaleX(1.05) scaleY(0.9); /* Squash on landing */
+  }
 }
 
 .auth-grid-overlay {
-	background-image:
-		linear-gradient(to right, color-mix(in oklab, var(--color-base-content) 10%, transparent) 1px, transparent 1px),
-		linear-gradient(to bottom, color-mix(in oklab, var(--color-base-content) 10%, transparent) 1px, transparent 1px);
-	background-size: 30px 30px;
-	mask-image: radial-gradient(circle at center, black 20%, transparent 88%);
+  background-image:
+    linear-gradient(
+      to right,
+      color-mix(in oklab, var(--color-base-content) 10%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--color-base-content) 10%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 30px 30px;
+  mask-image: radial-gradient(circle at center, black 20%, transparent 88%);
 }
 
 .auth-float-slow {
-	animation: authFloat 7s ease-in-out infinite;
+  animation: authFloat 7s ease-in-out infinite;
 }
 
 .auth-float-reverse {
-	animation: authFloat 6.2s ease-in-out infinite reverse;
+  animation: authFloat 6.2s ease-in-out infinite reverse;
 }
 
 .auth-float-fast {
-	animation: authFloat 4.2s ease-in-out infinite;
+  animation: authFloat 4.2s ease-in-out infinite;
 }
 
 .auth-orbit-dot {
-	position: absolute;
-	left: 50%;
-	top: 50%;
-	width: 12px;
-	height: 12px;
-	margin-left: -6px;
-	margin-top: -6px;
-	border-radius: 9999px;
-	box-shadow: 0 0 0 6px color-mix(in oklab, var(--color-primary) 28%, transparent);
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  margin-top: -6px;
+  border-radius: 9999px;
+  box-shadow: 0 0 0 6px
+    color-mix(in oklab, var(--color-primary) 28%, transparent);
 }
 
 .auth-orbit-one {
-	background: var(--color-primary);
-	animation: authOrbit 8.5s linear infinite;
+  background: var(--color-primary);
+  animation: authOrbit 8.5s linear infinite;
 }
 
 .auth-orbit-two {
-	background: var(--color-secondary);
-	animation: authOrbit 6.2s linear infinite reverse;
+  background: var(--color-secondary);
+  animation: authOrbit 6.2s linear infinite reverse;
 }
 
 @keyframes authFloat {
-	0%,
-	100% {
-		transform: translate3d(0, 0, 0) scale(1);
-	}
-	50% {
-		transform: translate3d(0, -12px, 0) scale(1.06);
-	}
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, -12px, 0) scale(1.06);
+  }
 }
 
 @keyframes authOrbit {
-	from {
-		transform: rotate(0deg) translateX(38%) rotate(0deg);
-	}
-	to {
-		transform: rotate(360deg) translateX(38%) rotate(-360deg);
-	}
+  from {
+    transform: rotate(0deg) translateX(38%) rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg) translateX(38%) rotate(-360deg);
+  }
 }

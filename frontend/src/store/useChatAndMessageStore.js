@@ -3,27 +3,11 @@ import { axiosInstance } from "../lib/axios";
 import { toast } from "react-hot-toast";
 
 export const useChatAndMessageStore = create((set) => ({
-  users: null,
   messages: null,
   selectedUser: null,
 
-  isGettingUsers: false,
   isGettingMessages: false,
   isSendingMessage: false,
-
-  //function to get users for the chat
-  getUsers: async () => {
-    set({ isGettingUsers: true });
-    try {
-      const response = await axiosInstance.get("/message/users");
-      set({ users: response.data });
-    } catch (error) {
-      console.log("Error in getting users for chat: ", error);
-      toast.error("Error in getting users");
-    } finally {
-      set({ isGettingUsers: false });
-    }
-  },
 
   //function to get message of a specific user
   getMessages: async (_id) => {
@@ -61,13 +45,11 @@ export const useChatAndMessageStore = create((set) => ({
     set({ selectedUser: _id });
   },
 
-  setDefault: () => {
+  setDefaultValuesOfMessageStore: () => {
     set({
-      users: null,
       messages: null,
       selectedUser: null,
 
-      isGettingUsers: false,
       isGettingMessages: false,
       isSendingMessage: false,
     });

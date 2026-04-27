@@ -2,6 +2,8 @@ import { Router } from "express";
 import {
   acceptRequest,
   deleteFriend,
+  findFriendRequests,
+  findFriends,
   findUsers,
   rejectRequest,
   sendRequest,
@@ -13,16 +15,22 @@ const router = Router();
 //router to find a user via email or name to send friend request
 router.get("/find", protectRoute, findUsers);
 
+//router to find friend requests
+router.get("/find/requests", protectRoute, findFriendRequests);
+
+//router to find friend requests
+router.get("/find/friends", protectRoute, findFriends);
+
 //router to send friend request to a specific user via id of the recipient
-router.post("/send_request/:id", protectRoute, sendRequest);
+router.post("/send/:id", protectRoute, sendRequest);
 
 //router to delete a specific friend by user id
 router.delete("/delete/:id", protectRoute, deleteFriend);
 
 //router to accept a specific friend request by connection id
-router.put("/accept_request/:connectionID", protectRoute, acceptRequest);
+router.put("/accept/:connectionID", protectRoute, acceptRequest);
 
 //router to reject a specific friend request by connection id
-router.delete("/reject_request/:connectionID", protectRoute, rejectRequest);
+router.delete("/reject/:connectionID", protectRoute, rejectRequest);
 
 export default router;

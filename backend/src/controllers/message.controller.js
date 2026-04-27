@@ -1,24 +1,6 @@
 import User from "../models/user.model.js";
 import Message from "../models/message.model.js";
-import cloudinary from "../lib/cloudinary.js";
 import imagekit from "../lib/imagekit.js";
-
-//controller to get all users-data excluding loggedInUser
-export const getUsers = async (req, res) => {
-  const loggedInUserId = req.user._id;
-  try {
-    //getting all users from DB in descending order excluding loggedInUser
-    const users = await User.find({ _id: { $ne: loggedInUserId } })
-      .select("-password")
-      .sort({ createdAt: -1 })
-      .lean();
-
-    res.status(200).json(users);
-  } catch (error) {
-    console.log("Error in getUser message-controller:", error.message);
-    res.status(500).json({ message: "Internal server error!" });
-  }
-};
 
 //controller to get messages with a specific user
 export const getMessages = async (req, res) => {

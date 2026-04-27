@@ -1,7 +1,6 @@
 import { generateJWT } from "../lib/utils.js";
 import User from "../models/user.model.js";
 import bcrypt from 'bcryptjs'
-// import cloudinary from '../lib/cloudinary.js'
 import imagekit from "../lib/imagekit.js";
 
 //function to signup/create user in DB-------------
