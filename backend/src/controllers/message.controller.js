@@ -58,7 +58,7 @@ export const sendMessage = async (req, res) => {
     await newMessage.save();
 
     //emiting the message if user is online
-    const receiverSocketIds = getSocketIds(receiverId.toString());
+    const receiverSocketIds = await getSocketIds(receiverId.toString());
     if (receiverSocketIds?.length >= 1) {
       receiverSocketIds.forEach((socketId) => {
         io.to(socketId).emit("newMessageReceived", newMessage);
@@ -66,7 +66,7 @@ export const sendMessage = async (req, res) => {
     }
 
     //emitting the message to the sender
-    const senderSocketIds = getSocketIds(myId.toString());
+    const senderSocketIds = await getSocketIds(myId.toString());
     if (senderSocketIds?.length >= 1) {
       senderSocketIds.forEach((socketId) => {
         io.to(socketId).emit("newMessageSent", newMessage);

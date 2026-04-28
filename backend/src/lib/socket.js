@@ -1,9 +1,18 @@
 import { Server } from "socket.io";
 import http from "node:http";
 import express from "express";
+import { createClient } from "redis";
+
+const redisClient = createClient({
+  url: process.env.REDIS_URL || "redis://127.0.0.1:6379",
+});
+
+redisClient.on("error", (err) => console.log("Redis Error:", err));
+
+await redisClient.connect();
+console.log("✅ Redis connected");
 
 const app = express();
-
 const server = http.createServer(app);
 
 const io = new Server(server, {
@@ -12,18 +21,14 @@ const io = new Server(server, {
   },
 });
 
-//online users object userId => [socketIds]
-const onlineUsersMap = new Map();
-
-//helper function to get socketIds by userId
-export function getSocketIds(userId) {
-  return onlineUsersMap.get(userId);
+// helper to getSocketIds
+export async function getSocketIds(userId) {
+  return await redisClient.sMembers(`user:${userId}:sockets`);
 }
 
-io.on("connection", (socket) => {
+io.on("connection", async (socket) => {
   const userId = socket.handshake.query.userId;
 
-  //making sure the friendsIdList is an array
   let friendsIdList = socket.handshake.query.friendsIdList || [];
   if (typeof friendsIdList === "string") {
     friendsIdList = friendsIdList.split(",");
@@ -31,44 +36,44 @@ io.on("connection", (socket) => {
 
   if (!userId) return;
 
-  //adding user with socket in the onlineUsersMap
-  const userSockets = onlineUsersMap.get(userId) || [];
-  onlineUsersMap.set(userId, [...userSockets, socket.id]);
+  // storing user ids and socket ids
+  await redisClient.sAdd(`user:${userId}:sockets`, socket.id);
+  await redisClient.sAdd("onlineUsers", userId);
+  await redisClient.set(`socket:${socket.id}`, userId);
 
-  //function to get friends status if they are online or offline
-  const getFriendsStatus = () =>
-    friendsIdList.filter((id) => onlineUsersMap.has(id));
+  // getting all online friends of user
+  const onlineUsers = new Set(await redisClient.sMembers("onlineUsers"));
+  const onlineFriends = friendsIdList.filter((id) => onlineUsers.has(id));
 
-  //emiting all the online friends that this user is now online
-  friendsIdList.forEach((id) => {
-    const friendSockets = onlineUsersMap.get(id) || [];
+  socket.emit("getOnlineFriends", onlineFriends);
 
-    friendSockets.forEach((socket) => {
-      io.to(socket).emit("friendOnline", userId);
-    });
-  });
+  // notifying all friends that user is online
+  for (const id of friendsIdList) {
+    const friendSockets = await redisClient.sMembers(`user:${id}:sockets`);
 
-  //emiting the user that which of his friends are online
-  socket.emit("getOnlineFriends", getFriendsStatus());
+    for (const sId of friendSockets) {
+      io.to(sId).emit("friendOnline", userId);
+    }
+  }
 
-  socket.on("disconnect", () => {
-    const userSockets = onlineUsersMap.get(userId) || [];
+  socket.on("disconnect", async () => {
+    const remaining = await redisClient.sCard(`user:${userId}:sockets`);
+    if (remaining === 1) {
+      await redisClient.del(`user:${userId}:sockets`);
+      await redisClient.sRem("onlineUsers", userId);
 
-    const updatedSockets = userSockets.filter((id) => id !== socket.id);
+      // notifing all friedns that this user is now offline
+      for (const id of friendsIdList) {
+        const friendSockets = await redisClient.sMembers(`user:${id}:sockets`);
 
-    if (updatedSockets.length === 0) {
-      onlineUsersMap.delete(userId);
-
-      //emiting all the online friends that this user is now offline
-      friendsIdList.forEach((id) => {
-        const friendSockets = onlineUsersMap.get(id) || [];
-
-        friendSockets.forEach((socket) => {
-          io.to(socket).emit("friendOffline", userId);
-        });
-      });
+        for (const sId of friendSockets) {
+          io.to(sId).emit("friendOffline", userId);
+        }
+      }
     } else {
-      onlineUsersMap.set(userId, updatedSockets);
+      //removing the socket of user
+      await redisClient.sRem(`user:${userId}:sockets`, socket.id);
+      await redisClient.del(`socket:${socket.id}`);
     }
   });
 });
