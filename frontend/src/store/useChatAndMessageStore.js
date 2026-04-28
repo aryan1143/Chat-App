@@ -7,6 +7,8 @@ export const useChatAndMessageStore = create((set, get) => ({
   messages: null,
   selectedUser: null,
 
+  isSelectedUserTyping: false,
+
   isGettingMessages: false,
   isSendingMessage: false,
 
@@ -103,5 +105,33 @@ export const useChatAndMessageStore = create((set, get) => ({
     }
   },
 
-  unSubscribeToMessages: () => {},
+  handleSelectedUserStartedTyping: () => {
+    const socket = useAuthStore.getState().socket;
+
+    if (socket) {
+      //handeling if user started typing...
+      socket.on("typing", (query) => {
+        const selectedUserId = get().selectedUser;
+
+        if (selectedUserId && selectedUserId === query?.from) {
+          set({ isSelectedUserTyping: true });
+        }
+      });
+    }
+  },
+
+  handleSelectedUserStoppedTyping: () => {
+    const socket = useAuthStore.getState().socket;
+
+    if (socket) {
+      //handeling if user started typing...
+      socket.on("stopTyping", (query) => {
+        const selectedUserId = get().selectedUser;
+
+        if (selectedUserId && selectedUserId === query?.from) {
+          set({ isSelectedUserTyping: false });
+        }
+      });
+    }
+  },
 }));

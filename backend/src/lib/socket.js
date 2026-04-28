@@ -76,6 +76,24 @@ io.on("connection", async (socket) => {
       await redisClient.del(`socket:${socket.id}`);
     }
   });
+
+  socket.on("typing", async (query) => {
+    const receiverSockets = await redisClient.sMembers(
+      `user:${query.to}:sockets`,
+    );
+    receiverSockets.forEach((sId) => {
+      io.to(sId).emit("typing", query);
+    });
+  });
+
+  socket.on("stopTyping", async (query) => {
+    const receiverSockets = await redisClient.sMembers(
+      `user:${query.to}:sockets`,
+    );
+    receiverSockets.forEach((sId) => {
+      io.to(sId).emit("stopTyping", query);
+    });
+  });
 });
 
 export { io, app, server };
