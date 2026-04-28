@@ -5,13 +5,15 @@ import AuthPagePattern from "../components/AuthPagePattern";
 import toast from "react-hot-toast";
 import { useAuthStore } from "../store/useAuthStore";
 import { useChatAndMessageStore } from "../store/useChatAndMessageStore";
+import { useConnectionStore } from "../store/useConnectionStore";
 
 function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   const { isSigningUp, signUp } = useAuthStore();
 
-  const { setDefault } = useChatAndMessageStore();
+  const { setDefaultValuesOfMessageStore } = useChatAndMessageStore();
+  const { setDefaultValuesOfConnectionStore } = useConnectionStore();
 
   const [formData, setFormData] = useState({
     fullName: null,
@@ -30,7 +32,8 @@ function SignUpPage() {
     if (!formData.email.trim()) return toast.error("Email name is required");
     if (!formData.password.trim())
       return toast.error("Password name is required");
-    setDefault();
+    setDefaultValuesOfMessageStore();
+    setDefaultValuesOfConnectionStore();
     signUp(formData);
   };
 

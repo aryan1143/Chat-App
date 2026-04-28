@@ -15,6 +15,11 @@ const io = new Server(server, {
 //online users object userId => [socketIds]
 const onlineUsersMap = new Map();
 
+//helper function to get socketIds by userId
+export function getSocketIds(userId) {
+  return onlineUsersMap.get(userId);
+}
+
 io.on("connection", (socket) => {
   const userId = socket.handshake.query.userId;
 
@@ -53,18 +58,18 @@ io.on("connection", (socket) => {
 
     if (updatedSockets.length === 0) {
       onlineUsersMap.delete(userId);
+
+      //emiting all the online friends that this user is now offline
+      friendsIdList.forEach((id) => {
+        const friendSockets = onlineUsersMap.get(id) || [];
+
+        friendSockets.forEach((socket) => {
+          io.to(socket).emit("friendOffline", userId);
+        });
+      });
     } else {
       onlineUsersMap.set(userId, updatedSockets);
     }
-
-    //emiting all the online friends that this user is now offline
-    friendsIdList.forEach((id) => {
-      const friendSockets = onlineUsersMap.get(id) || [];
-
-      friendSockets.forEach((socket) => {
-        io.to(socket).emit("friendOffline", userId);
-      });
-    });
   });
 });
 

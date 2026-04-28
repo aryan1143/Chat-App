@@ -19,12 +19,14 @@ function ChatArea() {
   const [textMessage, setTextMessage] = useState("");
   const [imageSrc, setImageSrc] = useState("");
   const [selectedUserData, setSelectedUserData] = useState({});
-  const [showUserInfo, setShowUserInfo] = useState(false);  
+  const [showUserInfo, setShowUserInfo] = useState(false);
   const profileOpenBtnRef = useRef(null);
 
   const messageAreaRef = useRef(null);
 
-  const { authUser } = useAuthStore();
+  const { authUser, socket } = useAuthStore();
+
+  const { friendsOnline } = useConnectionStore();
 
   const {
     setSelectedUser,
@@ -33,7 +35,21 @@ function ChatArea() {
     messages,
     users,
     sendMessage,
+    subscribeToMessages,
   } = useChatAndMessageStore();
+
+  useEffect(() => {
+    subscribeToMessages();
+  }, [socket]);
+
+  useEffect(() => {
+    if (!messageAreaRef.current || !messages?.length) return;
+
+    messageAreaRef.current.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }, [messages, selectedUser]);
 
   const { friends } = useConnectionStore();
 
@@ -50,11 +66,6 @@ function ChatArea() {
     sendMessage(selectedUser, { text: textMessage, image: imageSrc });
     setTextMessage("");
     setImageSrc(null);
-    const messageArea = messageAreaRef.current;
-    messageArea.scrollTo({
-      top: document.body.scrollHeight,
-      behavior: "smooth",
-    });
   };
 
   useEffect(() => {
@@ -118,13 +129,18 @@ function ChatArea() {
         </button>
         <button
           ref={profileOpenBtnRef}
-          onClick={() => setShowUserInfo(prev => !prev)}
+          onClick={() => setShowUserInfo((prev) => !prev)}
           className="flex items-center w-4/10 gap-1 truncate"
         >
-          <img
-            src={selectedUserData?.profilePic}
-            className="rounded-full size-10"
-          />
+          <div className="shrink-0 relative">
+            <img
+              src={selectedUserData?.profilePic}
+              className="rounded-full size-10"
+            />
+            <span
+              className={`absolute size-2.5 z-10 rounded-full ${friendsOnline.includes(selectedUser) ? "bg-green-500" : "bg-gray-500"}  bottom-0 right-0 outline-2 outline-base-100`}
+            ></span>
+          </div>
           <div className="flex flex-col w-full justify-start">
             <h2 className="truncate mr-auto">{selectedUserData.fullName}</h2>
             <p className="truncate mr-auto text-xs text-base-content/60">

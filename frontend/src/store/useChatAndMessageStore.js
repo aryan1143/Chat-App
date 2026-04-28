@@ -1,13 +1,30 @@
 import { create } from "zustand";
 import { axiosInstance } from "../lib/axios";
 import { toast } from "react-hot-toast";
+import { useAuthStore } from "./useAuthStore";
 
-export const useChatAndMessageStore = create((set) => ({
+export const useChatAndMessageStore = create((set, get) => ({
   messages: null,
   selectedUser: null,
 
   isGettingMessages: false,
   isSendingMessage: false,
+
+  newMessageUsersSet: new Set(),
+
+  // add user with new message
+  addNewMessageUser: (user) =>
+    set((state) => ({
+      newMessageUsersSet: new Set(state.newMessageUsersSet).add(user),
+    })),
+
+  // remove user after read the new message
+  removeNewMessageUser: (user) =>
+    set((state) => {
+      const next = new Set(state.newMessageUsersSet);
+      next.delete(user);
+      return { newMessageUsersSet: next };
+    }),
 
   //function to get message of a specific user
   getMessages: async (_id) => {
@@ -16,6 +33,7 @@ export const useChatAndMessageStore = create((set) => ({
     try {
       const response = await axiosInstance.get(`/message/${_id}`);
       set({ messages: response.data });
+      get().removeNewMessageUser(_id);
     } catch (error) {
       console.log("Error in getting messages for chat: ", error);
       toast.error("Error in getting message");
@@ -42,6 +60,7 @@ export const useChatAndMessageStore = create((set) => ({
 
   //function to set selected user
   setSelectedUser: (_id) => {
+    console.log(_id);
     set({ selectedUser: _id });
   },
 
@@ -54,4 +73,35 @@ export const useChatAndMessageStore = create((set) => ({
       isSendingMessage: false,
     });
   },
+
+  subscribeToMessages: () => {
+    const socket = useAuthStore.getState().socket;
+
+    if (socket) {
+      //handeling received new message
+      socket.on("newMessageReceived", (newMessage) => {
+        const selectedUserId = get().selectedUser;
+
+        if (selectedUserId && selectedUserId === newMessage?.senderId) {
+          console.log(newMessage);
+          set({ messages: [...get().messages, newMessage] });
+        } else {
+          toast("New message received 🔔", {
+            position: "top-center",
+          });
+          get().addNewMessageUser(newMessage.senderId);
+        }
+      });
+
+      //handeling sent new message
+      socket.on("newMessageSent", (newMessage) => {
+        const selectedUserId = get().selectedUser;
+        if (selectedUserId === newMessage.receiverId) {
+          set({ messages: [...get().messages, newMessage] });
+        }
+      });
+    }
+  },
+
+  unSubscribeToMessages: () => {},
 }));

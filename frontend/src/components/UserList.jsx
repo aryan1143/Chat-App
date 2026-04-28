@@ -12,8 +12,13 @@ import FriendListItemSkeleton from "./FriendListItemSkeleton";
 
 function UserList({ setIsSearchingFriends }) {
   const [userlistMode, setUserlistMode] = useState("friends");
-  const { users, setSelectedUser, selectedUser, getMessages } =
-    useChatAndMessageStore();
+  const {
+    users,
+    setSelectedUser,
+    selectedUser,
+    getMessages,
+    newMessageUsersSet,
+  } = useChatAndMessageStore();
 
   const {
     receivedRequests,
@@ -99,7 +104,14 @@ function UserList({ setIsSearchingFriends }) {
                 <p className="text-base font-semibold truncate">
                   {user.fullName}
                 </p>
-                <p className="text-sm text-base-content/70">{friendsOnline.includes(user._id) ? 'Online' : 'Oflline'}</p>
+                <p className="text-sm text-base-content/70">
+                  {friendsOnline.includes(user._id) ? "Online" : "Oflline"}
+                </p>
+              </div>
+              <div className="p-2 ml-auto w-fit h-full flex justify-center items-center">
+                {newMessageUsersSet && newMessageUsersSet.has(user._id) && (
+                  <span className="size-2 bg-green-500 rounded-full"></span>
+                )}
               </div>
             </button>
           ))}

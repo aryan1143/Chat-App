@@ -118,7 +118,6 @@ export const useAuthStore = create((set, get) => ({
     });
 
     socket.on("friendOffline", (id) => {
-      
       useConnectionStore.setState((state) => ({
         friendsOnline: state.friendsOnline.filter(
           (onlineFriendId) => onlineFriendId != id,

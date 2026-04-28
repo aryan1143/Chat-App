@@ -1,6 +1,7 @@
 import User from "../models/user.model.js";
 import Message from "../models/message.model.js";
 import imagekit from "../lib/imagekit.js";
+import { getSocketIds, io } from "../lib/socket.js";
 
 //controller to get messages with a specific user
 export const getMessages = async (req, res) => {
@@ -56,7 +57,21 @@ export const sendMessage = async (req, res) => {
 
     await newMessage.save();
 
-    //todo: realtime functionality will go here-----
+    //emiting the message if user is online
+    const receiverSocketIds = getSocketIds(receiverId.toString());
+    if (receiverSocketIds?.length >= 1) {
+      receiverSocketIds.forEach((socketId) => {
+        io.to(socketId).emit("newMessageReceived", newMessage);
+      });
+    }
+
+    //emitting the message to the sender
+    const senderSocketIds = getSocketIds(myId.toString());
+    if (senderSocketIds?.length >= 1) {
+      senderSocketIds.forEach((socketId) => {
+        io.to(socketId).emit("newMessageSent", newMessage);
+      });
+    }
 
     return res.status(201).json(newMessage);
   } catch (error) {
