@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { axiosInstance } from "../lib/axios";
 import { toast } from "react-hot-toast";
 import { useAuthStore } from "./useAuthStore";
+import { uid } from "uid";
 
 export const useChatAndMessageStore = create((set, get) => ({
   messages: null,
@@ -48,10 +49,25 @@ export const useChatAndMessageStore = create((set, get) => ({
   sendMessage: async (_id, message) => {
     const { text, image } = message;
     if (!_id || (!text && !image)) return;
+    const clientMsgId = uid(8);
     try {
       set({ isSendingMessage: true });
 
-      await axiosInstance.post(`/message/send/${_id}`, { text, image });
+      const newMessage = {
+        senderId: useAuthStore.getState()?.authUser?._id,
+        receiverId: _id,
+        clientMsgId,
+        text,
+        image,
+      };
+
+      set({ messages: [...get().messages, newMessage] });
+
+      await axiosInstance.post(`/message/send/${_id}`, {
+        text,
+        image,
+        clientMsgId,
+      });
     } catch (error) {
       console.log("Error in sending messages: ", error);
       toast.error("Error in sending message");
@@ -99,7 +115,15 @@ export const useChatAndMessageStore = create((set, get) => ({
       socket.on("newMessageSent", (newMessage) => {
         const selectedUserId = get().selectedUser;
         if (selectedUserId === newMessage.receiverId) {
-          set({ messages: [...get().messages, newMessage] });
+          set({
+            messages: [
+              ...get().messages.map((message) => {
+                if (message.clientMsgId === newMessage.clientMsgId)
+                  return newMessage;
+                return message;
+              }),
+            ],
+          });
         }
       });
     }

@@ -1,10 +1,13 @@
 import {
   ArrowLeft,
+  Check,
   CirclePlus,
   EllipsisVertical,
   MessageSquare,
   Plus,
   SendHorizontal,
+  Timer,
+  X,
 } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { useChatAndMessageStore } from "../store/useChatAndMessageStore";
@@ -201,7 +204,7 @@ function ChatArea() {
           messages.toReversed().map((message) => {
             return message.receiverId === authUser._id ? (
               <div
-                key={message._id}
+                key={message.clientMsgId}
                 className="mr-auto flex gap-1 w-fit h-fit my-1 lg:my-2 text-2sm"
               >
                 <div className="h-full w-8 lg:w-10 flex items-end shrink-0">
@@ -230,7 +233,7 @@ function ChatArea() {
               </div>
             ) : (
               <div
-                key={message._id}
+                key={message.clientMsgId}
                 className="ml-auto flex gap-1 w-fit h-fit my-1 lg:my-2 text-2sm"
               >
                 <div className="flex flex-col">
@@ -245,7 +248,14 @@ function ChatArea() {
                           src={message.image}
                         />
                       )}
-                      <p className="px-1">{message.text}</p>
+                      <span className="w-full flex h-fit">
+                        <p className="px-1">{message.text}</p>
+                        {!message?.createdAt ? (
+                          <Timer className="ml-auto size-2.5 lg:size-3.5 mt-auto opacity-60" />
+                        ) : (
+                          <Check className="ml-auto size-2.5 lg:size-3.5 mt-auto opacity-60" />
+                        )}
+                      </span>
                     </div>
                     <span className="mt-auto rounded-t-sm rounded-r-sm -ml-1 inline-block w-0 h-0 border-solid border-t-10 border-r-0 border-l-10 border-b-0 border-l-base-300 border-r-transparent border-t-transparent border-b-transparent"></span>
                   </div>
@@ -259,6 +269,20 @@ function ChatArea() {
               </div>
             );
           })}
+        {imageSrc && (
+          <span className="absolute bottom-0 left-10 flex flex-col">
+            <div className="relative rounded-md border-3 overflow-hidden size-fit border-base-content">
+              <div className="absolute top-0 left-0 w-full flex bg-base-300/40 px-1">
+                <p className="pl-1">Selected Image</p>
+                <button onClick={() => setImageSrc(null)} className="ml-auto">
+                  <X className="stroke-3" />
+                </button>
+              </div>
+              <img src={imageSrc} className="w-40 lg:w-60" />
+            </div>
+            <span className="mx-auto -mt-0.5 inline-block w-0 h-0 border-solid border-t-[10px] border-r-[12px] border-l-[12px] border-b-0 border-l-transparent border-r-transparent border-t-base-content border-b-transparent"></span>
+          </span>
+        )}
       </div>
       {/* chat options */}
       <div className="w-full p-4 flex gap-1">
