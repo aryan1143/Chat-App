@@ -21,6 +21,9 @@ const io = new Server(server, {
   },
 });
 
+//clearing current db in start of the server
+await redisClient.flushDb();
+
 // helper to getSocketIds
 export async function getSocketIds(userId) {
   return await redisClient.sMembers(`user:${userId}:sockets`);

@@ -1,3 +1,4 @@
+import { getSocketIds, io } from "../lib/socket.js";
 import Connections from "../models/connections.model.js";
 import User from "../models/user.model.js";
 
@@ -194,7 +195,9 @@ export const sendRequest = async (req, res) => {
 
   try {
     //finding the recipient from User model (DB)
-    const recipientData = await User.findById(recipientID).select("-password");
+    const recipientData = await User.findById(recipientID)
+      .select("fullName email _id profilePic")
+      .lean();
     if (!recipientData)
       return res.status(404).json({ message: "User not found" });
 
@@ -222,7 +225,14 @@ export const sendRequest = async (req, res) => {
       status: "pending",
     });
 
-    //todo: socket.io code will go here
+    //sending request to the recipient
+    const recipientSocketIds = await getSocketIds(recipientID.toString());
+    recipientSocketIds.forEach((socketId) => {
+      io.to(socketId).emit("requestReceived", {
+        ...recipientData,
+        connectionID: newConnection._id,
+      });
+    });
 
     res.status(201).json(newConnection);
   } catch (error) {

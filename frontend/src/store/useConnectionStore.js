@@ -30,6 +30,16 @@ export const useConnectionStore = create((set, get) => ({
     }
   },
 
+  getReceivedRequestsInRealTime: () => {
+    const socket = useAuthStore.getState().socket;
+
+    if (socket) {
+      socket.on("requestReceived", (connection) => {
+        set({ receivedRequests: [connection] });
+      });
+    }
+  },
+
   getFriends: async () => {
     try {
       set({ isGettingFriends: true });
@@ -37,10 +47,7 @@ export const useConnectionStore = create((set, get) => ({
       set({ friends: response.data });
       useAuthStore.getState().connectSocket();
     } catch (error) {
-      console.log(
-        "Error in getFriends in connection store : ",
-        error?.message,
-      );
+      console.log("Error in getFriends in connection store : ", error?.message);
       set({ friends: [] });
     } finally {
       set({ isGettingFriends: false });
@@ -81,9 +88,7 @@ export const useConnectionStore = create((set, get) => ({
         error?.message,
       );
       get().updateUserConnectionStatus(userId, "received", connectionID);
-      toast.error(
-        error?.response?.data?.message || "Failed to accept request",
-      );
+      toast.error(error?.response?.data?.message || "Failed to accept request");
     }
   },
 
@@ -100,9 +105,7 @@ export const useConnectionStore = create((set, get) => ({
         error?.message,
       );
       get().updateUserConnectionStatus(userId, "received", connectionID);
-      toast.error(
-        error?.response?.data?.message || "Failed to reject request",
-      );
+      toast.error(error?.response?.data?.message || "Failed to reject request");
     }
   },
 
@@ -119,7 +122,7 @@ export const useConnectionStore = create((set, get) => ({
   }, 1500),
 
   updateUserConnectionStatus: (userId, status, connectionID) => {
-    if(get().searchedUsers.length === 0) return;
+    if (get().searchedUsers.length === 0) return;
     set((state) => ({
       searchedUsers: state.searchedUsers.map((u) =>
         u._id === userId
@@ -134,22 +137,22 @@ export const useConnectionStore = create((set, get) => ({
   },
 
   updateReceivedRequestsAndFriends: (connectionID) => {
-  set((state) => {
-    const acceptedUser = state.receivedRequests.find(
-      (u) => u.connectionID === connectionID
-    );
+    set((state) => {
+      const acceptedUser = state.receivedRequests.find(
+        (u) => u.connectionID === connectionID,
+      );
 
-    return {
-      receivedRequests: state.receivedRequests.filter(
-        (u) => u.connectionID !== connectionID
-      ),
+      return {
+        receivedRequests: state.receivedRequests.filter(
+          (u) => u.connectionID !== connectionID,
+        ),
 
-      friends: acceptedUser
-        ? [...state.friends, acceptedUser]
-        : state.friends,
-    };
-  });
-},
+        friends: acceptedUser
+          ? [...state.friends, acceptedUser]
+          : state.friends,
+      };
+    });
+  },
 
   fetchUsers: async (query) => {
     if (!query) return;

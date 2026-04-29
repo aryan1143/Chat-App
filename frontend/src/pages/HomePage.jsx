@@ -5,17 +5,24 @@ import { useChatAndMessageStore } from "../store/useChatAndMessageStore";
 import SearchAndAddFriends from "../components/SearchAndAddFriends";
 import { useState } from "react";
 import { useConnectionStore } from "../store/useConnectionStore";
+import { useAuthStore } from "../store/useAuthStore";
 
 function HomePage() {
   const [isSearchingFriends, setIsSearchingFriends] = useState(false);
   const { selectedUser, getUsers } = useChatAndMessageStore();
-  const {getReceivedRequests, getFriends} = useConnectionStore();
+  const { getReceivedRequests, getFriends, getReceivedRequestsInRealTime } =
+    useConnectionStore();
+  const { socket } = useAuthStore();
 
   //getting initial data
   useEffect(() => {
     getFriends();
     getReceivedRequests();
   }, []);
+
+  useEffect(() => {
+    getReceivedRequestsInRealTime();
+  }, [socket]);
 
   return (
     <div className="flex w-full h-full min-h-0 text-base-content overflow-hidden">
