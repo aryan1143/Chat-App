@@ -1,6 +1,7 @@
 import {
   ArrowLeft,
   Check,
+  CheckCheck,
   CirclePlus,
   EllipsisVertical,
   MessageSquare,
@@ -150,7 +151,7 @@ function ChatArea() {
               className="rounded-full size-10"
             />
             <span
-              className={`absolute size-2.5 z-10 rounded-full ${friendsOnline.includes(selectedUser) ? "bg-green-500" : "bg-gray-500"}  bottom-0 right-0 outline-2 outline-base-100`}
+              className={`absolute size-3 z-10 rounded-full ${friendsOnline.includes(selectedUser) ? "bg-green-500" : "bg-gray-500"}  bottom-0 right-0 outline-2 outline-base-100`}
             ></span>
           </div>
           <div className="flex flex-col w-full justify-start">
@@ -243,17 +244,28 @@ function ChatArea() {
                   <div className="flex justify-end">
                     <div className="p-1 w-fit rounded-br-xs rounded-md bg-base-300 wrap-anywhere ml-5 lg:ml-10">
                       {message?.image && (
-                        <img
-                          className="w-50 lg:w-80 rounded-sm"
-                          src={message.image}
-                        />
+                        <div className="w-50 lg:w-70 relative rounded-sm overflow-hidden">
+                          <img className="w-full" src={message.image} />
+                          {!message?.createdAt && (
+                            <div className="absolute top-0 left-0 w-full h-full bg-base-300/20 backdrop-blur-sm flex justify-center items-center">
+                              <span className="loading loading-infinity loading-xl stroke-3 w-15"></span>
+                            </div>
+                          )}
+                        </div>
                       )}
                       <span className="w-full flex h-fit">
                         <p className="px-1">{message.text}</p>
-                        {!message?.createdAt ? (
-                          <Timer className="ml-auto size-2.5 lg:size-3.5 mt-auto opacity-60" />
-                        ) : (
-                          <Check className="ml-auto size-2.5 lg:size-3.5 mt-auto opacity-60" />
+                        {message.status === "sent" && (
+                          <Check className="ml-auto size-3 lg:size-3.5 mt-auto opacity-60 stroke-3" />
+                        )}
+                        {message.status === "received" && (
+                          <CheckCheck className="ml-auto size-3 lg:size-3.5 mt-auto opacity-60 stroke-3" />
+                        )}
+                        {message.status === "seen" && (
+                          <CheckCheck className="ml-auto size-3 lg:size-3.5 mt-auto opacity-80 text-[#468aff] stroke-3" />
+                        )}
+                        {!message?.createdAt && (
+                          <Timer className="ml-auto size-3 lg:size-3.5 mt-auto opacity-60 stroke-3" />
                         )}
                       </span>
                     </div>

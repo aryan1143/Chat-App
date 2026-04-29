@@ -18,6 +18,7 @@ const messageSchema = new Schema(
     },
     status: {
       type: String,
+      default: "sent",
       enum: ["sent", "received", "seen"],
     },
     text: {
@@ -25,6 +26,16 @@ const messageSchema = new Schema(
     },
     image: {
       type: String,
+    },
+    sentAt: {
+      type: Date,
+      default: Date.now,
+    },
+    receivedAt: {
+      type: Date,
+    },
+    seenAt: {
+      type: Date,
     },
   },
   { timestamps: true },

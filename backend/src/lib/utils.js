@@ -1,17 +1,45 @@
 import jwt from "jsonwebtoken";
+import Message from "../models/message.model.js";
+import { getSocketIds, io } from "./socket.js";
 
 //function to generate JWT of user obj
 export function generateJWT(userId, res) {
-    const token = jwt.sign({userId}, process.env.JWT_SECRET, {
-        expiresIn: "7d"
-    });
+  const token = jwt.sign({ userId }, process.env.JWT_SECRET, {
+    expiresIn: "7d",
+  });
 
-    res.cookie("jwt", token, {
-        maxAge: 7 * 24 * 60 * 60 * 1000, //Miliseconds
-        httpOnly: true,
-        sameSite: "strict",
-        secure: process.env.NODE_ENV !== "development"
-    });
+  res.cookie("jwt", token, {
+    maxAge: 7 * 24 * 60 * 60 * 1000, //Miliseconds
+    httpOnly: true,
+    sameSite: "strict",
+    secure: process.env.NODE_ENV !== "development",
+  });
 
-    return token;
+  return token;
+}
+
+export async function updateMessageStatus(messageData) {
+  const { _id, sentAt, receivedAt, seenAt, status } = messageData;
+  if (!_id || !status || (!sentAt && !receivedAt && !seenAt))
+    return new Error("Message data is required to update message status");
+  try {
+    const updatedMessage = await Message.findByIdAndUpdate(
+      _id,
+      {
+        status,
+        sentAt: sentAt || null,
+        receivedAt: receivedAt || null,
+        seenAt: seenAt || null,
+      },
+      { returnDocument: "after" },
+    );
+    const { senderId } = updatedMessage;
+    const senderSocketIds = await getSocketIds(senderId);
+    senderSocketIds.forEach((sId) => {
+      io.to(sId).emit("receiverReceivedMessage", updatedMessage);
+    });
+    return updatedMessage;
+  } catch (error) {
+    throw new Error(error);
+  }
 }

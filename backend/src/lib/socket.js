@@ -2,6 +2,7 @@ import { Server } from "socket.io";
 import http from "node:http";
 import express from "express";
 import { createClient } from "redis";
+import { updateMessageStatus } from "./utils.js";
 
 const redisClient = createClient({
   url: process.env.REDIS_URL || "redis://127.0.0.1:6379",
@@ -10,7 +11,7 @@ const redisClient = createClient({
 redisClient.on("error", (err) => console.log("Redis Error:", err));
 
 await redisClient.connect();
-console.log("✅ Redis connected");
+console.log("Redis connected");
 
 const app = express();
 const server = http.createServer(app);
@@ -96,6 +97,14 @@ io.on("connection", async (socket) => {
     receiverSockets.forEach((sId) => {
       io.to(sId).emit("stopTyping", query);
     });
+  });
+
+  socket.on("messageReceived", async (query) => {
+    try {
+      const updatedMessage = await updateMessageStatus(query);
+    } catch (error) {
+      console.log("Error in socket message received: ", error);
+    }
   });
 });
 

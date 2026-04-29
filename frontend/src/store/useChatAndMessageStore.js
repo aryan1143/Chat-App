@@ -100,6 +100,13 @@ export const useChatAndMessageStore = create((set, get) => ({
       socket.on("newMessageReceived", (newMessage) => {
         const selectedUserId = get().selectedUser;
 
+        socket.emit("messageReceived", {
+          _id: newMessage._id,
+          clientMsgId: newMessage.clientMsgId,
+          status: selectedUserId === newMessage.senderId ? "seen" : "received",
+          receivedAt: Date.now(),
+        });
+
         if (selectedUserId && selectedUserId === newMessage?.senderId) {
           console.log(newMessage);
           set({ messages: [...get().messages, newMessage] });
@@ -108,6 +115,22 @@ export const useChatAndMessageStore = create((set, get) => ({
             position: "top-center",
           });
           get().addNewMessageUser(newMessage.senderId);
+        }
+      });
+
+      socket.on("receiverReceivedMessage", (newMessage) => {
+        const selectedUserId = get().selectedUser;
+        if (selectedUserId === newMessage.receiverId) {
+          console.log("message updated");
+          set({
+            messages: [
+              ...get().messages.map((message) => {
+                if (message.clientMsgId === newMessage.clientMsgId)
+                  return newMessage;
+                return message;
+              }),
+            ],
+          });
         }
       });
 

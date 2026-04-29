@@ -14,7 +14,33 @@ export const getMessages = async (req, res) => {
         { senderId: myId, receiverId: userToChatId },
         { senderId: userToChatId, receiverId: myId },
       ],
-    });
+    }).lean();
+
+    const messageUpdates = [];
+
+    for (const message of messages) {
+      if (message.status === "sent" || message.status === "received") {
+        messageUpdates.push({
+          updateOne: {
+            filter: { _id: message._id, receiverId: myId },
+            update: { $set: { status: "seen" } },
+          },
+        });
+
+        const senderSocketIds = await getSocketIds(message.senderId.toString());
+
+        for (const sId of senderSocketIds) {
+          io.to(sId).emit("receiverReceivedMessage", {
+            ...message,
+            status: "seen",
+          });
+        }
+      }
+    }
+
+    if (messageUpdates.length > 0) {
+      await Message.bulkWrite(messageUpdates);
+    }
 
     res.status(200).json(messages);
   } catch (error) {
@@ -39,6 +65,7 @@ export const sendMessage = async (req, res) => {
       senderId: myId,
       receiverId,
       clientMsgId,
+      status: "sent",
     });
 
     //uploading image url to cloudinary and adding the url to newMessage obj--
@@ -80,3 +107,6 @@ export const sendMessage = async (req, res) => {
     res.status(500).json({ message: "Internal server error!" });
   }
 };
+
+//controller if user received message sent by sender
+export const messageReceived = async (req, res) => {};
