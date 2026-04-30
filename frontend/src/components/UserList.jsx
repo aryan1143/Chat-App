@@ -58,11 +58,16 @@ function UserList({ setIsSearchingFriends }) {
         </div>
         <div className="w-4/10">
           <label
-            className={`cursor-pointer p-2 w-full justify-center flex items-center gap-1 rounded ${userlistMode === "requests" && "bg-base-300"}`}
+            className={`relative cursor-pointer p-2 w-full justify-center flex items-center gap-1 rounded ${userlistMode === "requests" && "bg-base-300"}`}
             htmlFor="friendRequest"
           >
             <UserRoundPlus className="size-4" />
             Requests
+            <div className="absolute top-[50%] right-2 -translate-y-[50%] p-2 ml-auto w-fit h-full flex justify-center items-center">
+              {receivedRequests.length > 0 && (
+                <span className="size-2 bg-green-500 rounded-full"></span>
+              )}
+            </div>
           </label>
           <input
             type="radio"

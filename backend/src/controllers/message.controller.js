@@ -2,6 +2,7 @@ import User from "../models/user.model.js";
 import Message from "../models/message.model.js";
 import imagekit from "../lib/imagekit.js";
 import { getSocketIds, io } from "../lib/socket.js";
+import Connections from "../models/connections.model.js";
 
 //controller to get messages with a specific user
 export const getMessages = async (req, res) => {
@@ -108,5 +109,54 @@ export const sendMessage = async (req, res) => {
   }
 };
 
-//controller if user received message sent by sender
-export const messageReceived = async (req, res) => {};
+//controller to get unread messages
+export const getNewMessages = async (req, res) => {
+  const userId = req.user._id;
+
+  try {
+    const connections = await Connections.find({
+      $or: [
+        { requesterID: userId, status: "accepted" },
+        { recipientID: userId, status: "accepted" },
+      ],
+    }).lean();
+
+    const friendsIds = connections.map((con) => {
+      if (con.requesterID === userId) return con.recipientID;
+      return con.requesterID;
+    });
+
+    const newMessages = await Message.aggregate([
+      {
+        $match: {
+          receiverId: userId,
+          senderId: { $in: friendsIds },
+          status: { $in: ["sent", "received"] },
+        },
+      },
+      {
+        $sort: {
+          senderId: 1,
+          createdAt: -1,
+        },
+      },
+      {
+        $group: {
+          _id: "$senderId",
+          latestDoc: { $first: "$$ROOT" },
+        },
+      },
+      {
+        $replaceRoot: { newRoot: "$latestDoc" },
+      },
+    ]);
+
+    if (!newMessages || newMessages.length === 0)
+      return res.status(204).json({ message: "No new message found" });
+
+    res.status(200).json(newMessages);
+  } catch (error) {
+    console.log("Error in getNewMessages message-controller:", error.message);
+    res.status(500).json({ message: "Internal server error!" });
+  }
+};

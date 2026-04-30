@@ -34,7 +34,7 @@ export const useChatAndMessageStore = create((set, get) => ({
     if (!_id) return;
     set({ isGettingMessages: true });
     try {
-      const response = await axiosInstance.get(`/message/${_id}`);
+      const response = await axiosInstance.get(`/message/messages/${_id}`);
       set({ messages: response.data });
       get().removeNewMessageUser(_id);
     } catch (error) {
@@ -42,6 +42,22 @@ export const useChatAndMessageStore = create((set, get) => ({
       toast.error("Error in getting message");
     } finally {
       set({ isGettingMessages: false });
+    }
+  },
+
+  //function to get all new messages from friends
+  getNewMessages: async () => {
+    try {
+      const response = await axiosInstance.get("/message/new-messages");
+      if (Array.isArray(response)) {
+        const newMessages = response.data;
+        newMessages.forEach((message) => {
+          get().addNewMessageUser(message.senderId);
+        });
+      }
+    } catch (error) {
+      console.log("Error in getting new messages for chat: ", error);
+      toast.error("Error in getting new messages");
     }
   },
 
@@ -78,7 +94,6 @@ export const useChatAndMessageStore = create((set, get) => ({
 
   //function to set selected user
   setSelectedUser: (_id) => {
-    console.log(_id);
     set({ selectedUser: _id });
   },
 
@@ -108,7 +123,6 @@ export const useChatAndMessageStore = create((set, get) => ({
         });
 
         if (selectedUserId && selectedUserId === newMessage?.senderId) {
-          console.log(newMessage);
           set({ messages: [...get().messages, newMessage] });
         } else {
           toast("New message received 🔔", {
@@ -121,7 +135,6 @@ export const useChatAndMessageStore = create((set, get) => ({
       socket.on("receiverReceivedMessage", (newMessage) => {
         const selectedUserId = get().selectedUser;
         if (selectedUserId === newMessage.receiverId) {
-          console.log("message updated");
           set({
             messages: [
               ...get().messages.map((message) => {

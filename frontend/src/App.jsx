@@ -13,10 +13,16 @@ import { useChatAndMessageStore } from "./store/useChatAndMessageStore";
 
 function App() {
   const { checkAuth, authUser, isCheckingAuth } = useAuthStore();
+  const { getNewMessages } = useChatAndMessageStore();
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
+
+  useEffect(() => {
+    if (!authUser) return;
+    getNewMessages();
+  }, [authUser]);
 
   if (isCheckingAuth && !authUser) {
     return (
