@@ -16,7 +16,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useChatAndMessageStore } from "../store/useChatAndMessageStore";
 import { useAuthStore } from "../store/useAuthStore";
 import readFile from "../lib/readImageFile";
-import { formatMessageTime } from "../lib/utils";
+import { formatMessageTime, formatMessageTimeForBubble } from "../lib/utils";
 import { useConnectionStore } from "../store/useConnectionStore";
 import MessageBubbleSkeleton from "./MessageBubbleSkeleton";
 import ShowProfileBox from "./ShowProfileBox";
@@ -271,7 +271,12 @@ function ChatArea() {
                           src={message.image}
                         />
                       )}
-                      <p className="px-1">{message.text}</p>
+                      <span className="w-full flex h-fit">
+                        <p className="px-1">{message.text}</p>
+                        <p className="text-xs mt-auto ml-auto text-base-content/50 font-light">
+                          {formatMessageTimeForBubble(message?.createdAt)}
+                        </p>
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -342,17 +347,20 @@ function ChatArea() {
                       )}
                       <span className="w-full flex h-fit">
                         <p className="px-1">{message.text}</p>
+                        <p className="text-xs mt-auto ml-auto text-base-content/50 font-light">
+                          {formatMessageTimeForBubble(message?.createdAt)}
+                        </p>
                         {message.status === "sent" && (
-                          <Check className="ml-auto size-3 lg:size-3.5 mt-auto opacity-60 stroke-3 shrink-0" />
+                          <Check className="ml-1 size-3 lg:size-3.5 mt-auto opacity-60 stroke-3 shrink-0" />
                         )}
                         {message.status === "received" && (
-                          <CheckCheck className="ml-auto size-3 lg:size-3.5 mt-auto opacity-60 stroke-3 shrink-0" />
+                          <CheckCheck className="ml-1 size-3 lg:size-3.5 mt-auto opacity-60 stroke-3 shrink-0" />
                         )}
                         {message.status === "seen" && (
-                          <CheckCheck className="ml-auto size-3 lg:size-3.5 mt-auto opacity-80 text-[#468aff] stroke-3 shrink-0" />
+                          <CheckCheck className="ml-1 size-3 lg:size-3.5 mt-auto opacity-80 text-[#468aff] stroke-3 shrink-0" />
                         )}
                         {message.status === null && (
-                          <Timer className="ml-auto size-3 lg:size-3.5 mt-auto opacity-60 stroke-3 shrink-0" />
+                          <Timer className="ml-1 size-3 lg:size-3.5 mt-auto opacity-60 stroke-3 shrink-0" />
                         )}
                       </span>
                     </div>

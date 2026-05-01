@@ -1,5 +1,6 @@
 //function to formate the time for the message timeing on the chat
 export function formatMessageTime(date) {
+  if (!date) return;
   const now = new Date();
   const diffInSeconds = Math.floor((new Date(date) - now) / 1000);
 
@@ -19,6 +20,15 @@ export function formatMessageTime(date) {
   return new Date(date).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
+  });
+}
+
+export function formatMessageTimeForBubble(date) {
+  if (!date) return;
+  return new Date(date).toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
   });
 }
 
