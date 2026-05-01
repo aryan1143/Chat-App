@@ -1,6 +1,8 @@
+import mongoose from "mongoose";
 import { getSocketIds, io } from "../lib/socket.js";
 import Connections from "../models/connections.model.js";
 import User from "../models/user.model.js";
+import Message from "../models/message.model.js";
 
 //function to find a users via query (email or name)
 export const findUsers = async (req, res) => {
@@ -198,6 +200,12 @@ export const sendRequest = async (req, res) => {
     const recipientData = await User.findById(recipientID)
       .select("fullName email _id profilePic")
       .lean();
+
+    //finding the requester from User model (DB)
+    const requesterData = await User.findById(requesterID)
+      .select("fullName email _id profilePic")
+      .lean();
+
     if (!recipientData)
       return res.status(404).json({ message: "User not found" });
 
@@ -225,11 +233,11 @@ export const sendRequest = async (req, res) => {
       status: "pending",
     });
 
-    //sending request to the recipient
+    //emiting request to the recipient
     const recipientSocketIds = await getSocketIds(recipientID.toString());
     recipientSocketIds.forEach((socketId) => {
       io.to(socketId).emit("requestReceived", {
-        ...recipientData,
+        ...requesterData,
         connectionID: newConnection._id,
       });
     });
@@ -306,8 +314,6 @@ export const rejectRequest = async (req, res) => {
 
     await connection.deleteOne();
 
-    //todo: socket.io code will go here
-
     return res.status(200).json({ message: "Request rejected successfully" });
   } catch (error) {
     console.log("Error in rejectRequest connection-controller:", error.message);
@@ -349,7 +355,24 @@ export const deleteFriend = async (req, res) => {
 
     await connection.deleteOne();
 
-    //todo: socket.io code will go here
+    await Message.deleteMany({
+      $or: [
+        {
+          senderId: new mongoose.Types.ObjectId(otherUserId),
+          receiverId: new mongoose.Types.ObjectId(userId),
+        },
+        {
+          senderId: new mongoose.Types.ObjectId(userId),
+          receiverId: new mongoose.Types.ObjectId(otherUserId),
+        },
+      ],
+    });
+
+    //emiting the other user that user deleted the connection
+    const socketIds = await getSocketIds(otherUserId.toString());
+    socketIds.forEach((socketId) => {
+      io.to(socketId).emit("friendDeleted", connection);
+    });
 
     return res.status(200).json({ message: "Friend deleted successfully" });
   } catch (error) {

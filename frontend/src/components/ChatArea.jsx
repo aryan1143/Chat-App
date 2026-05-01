@@ -112,7 +112,6 @@ function ChatArea() {
     if (isGettingMessages) return;
     const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
     if (scrollHeight + scrollTop - clientHeight < 5) {
-      console.log("scrolled on the top of the message");
       getMessages(selectedUser, scrolledTime);
       console.log(scrolledTime);
       setScrolledTime((prev) => prev + 1);

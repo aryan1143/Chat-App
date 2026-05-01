@@ -30,12 +30,24 @@ export const useConnectionStore = create((set, get) => ({
     }
   },
 
-  getReceivedRequestsInRealTime: () => {
+  getRealTimeConnectionData: () => {
     const socket = useAuthStore.getState().socket;
 
     if (socket) {
       socket.on("requestReceived", (connection) => {
         set({ receivedRequests: [connection] });
+      });
+
+      socket.on("friendDeleted", (connection) => {
+        set({
+          friends: get().friends.filter(
+            (friend) =>
+              !(
+                connection.recipientID === friend._id ||
+                connection.requesterID === friend._id
+              ),
+          ),
+        });
       });
     }
   },
@@ -89,6 +101,23 @@ export const useConnectionStore = create((set, get) => ({
       );
       get().updateUserConnectionStatus(userId, "received", connectionID);
       toast.error(error?.response?.data?.message || "Failed to accept request");
+    }
+  },
+
+  deleteFriend: async (userId) => {
+    if (!userId) return;
+    const friends = get().friends;
+    try {
+      set({ friends: friends.filter((user) => user._id !== userId) });
+      await axiosInstance.delete(`/connection/delete/${userId}`);
+      toast.success("Unfriended successfully");
+    } catch (error) {
+      console.log(
+        "Error in delete friend in connection store : ",
+        error?.message,
+      );
+      set({ friends: friends });
+      toast.error(error?.response?.data?.message || "Failed to delete friend");
     }
   },
 

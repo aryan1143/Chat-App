@@ -10,7 +10,7 @@ import { useAuthStore } from "../store/useAuthStore";
 function HomePage() {
   const [isSearchingFriends, setIsSearchingFriends] = useState(false);
   const { selectedUser, getUsers } = useChatAndMessageStore();
-  const { getReceivedRequests, getFriends, getReceivedRequestsInRealTime } =
+  const { getReceivedRequests, getFriends, getRealTimeConnectionData } =
     useConnectionStore();
   const { socket } = useAuthStore();
 
@@ -21,7 +21,7 @@ function HomePage() {
   }, []);
 
   useEffect(() => {
-    getReceivedRequestsInRealTime();
+    getRealTimeConnectionData();
   }, [socket]);
 
   return (
