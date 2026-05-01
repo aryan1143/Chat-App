@@ -8,6 +8,7 @@ import Connections from "../models/connections.model.js";
 export const getMessages = async (req, res) => {
   const userToChatId = req.params.id;
   const myId = req.user._id;
+  const { scrolledTime } = req.query;
 
   try {
     const messages = await Message.find({
@@ -15,7 +16,13 @@ export const getMessages = async (req, res) => {
         { senderId: myId, receiverId: userToChatId },
         { senderId: userToChatId, receiverId: myId },
       ],
-    }).lean();
+    })
+      .sort({ createdAt: -1 })
+      .skip(
+        20 * (Number(scrolledTime || 0) || (Number.isNaN(scrolledTime) && 0)),
+      )
+      .limit(20)
+      .lean();
 
     const messageUpdates = [];
 
@@ -43,7 +50,7 @@ export const getMessages = async (req, res) => {
       await Message.bulkWrite(messageUpdates);
     }
 
-    res.status(200).json(messages);
+    res.status(200).json(messages.reverse());
   } catch (error) {
     console.log("Error in getMessages message-controller:", error.message);
     res.status(500).json({ message: "Internal server error!" });

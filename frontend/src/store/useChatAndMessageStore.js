@@ -30,12 +30,16 @@ export const useChatAndMessageStore = create((set, get) => ({
     }),
 
   //function to get message of a specific user
-  getMessages: async (_id) => {
+  getMessages: async (_id, scrolledTime = 0) => {
     if (!_id) return;
     set({ isGettingMessages: true });
     try {
-      const response = await axiosInstance.get(`/message/messages/${_id}`);
-      set({ messages: response.data });
+      const response = await axiosInstance.get(`/message/messages/${_id}`, {
+        params: {
+          scrolledTime,
+        },
+      });
+      set({ messages: [...response.data, ...get().messages] });
       get().removeNewMessageUser(_id);
     } catch (error) {
       console.log("Error in getting messages for chat: ", error);

@@ -31,6 +31,7 @@ function ChatArea() {
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [showUserInfo, setShowUserInfo] = useState(false);
   const [activeMsg, setActiveMsg] = useState(null);
+  const [scrolledTime, setScrolledTime] = useState(1);
   const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
   const profileOpenBtnRef = useRef(null);
 
@@ -41,6 +42,7 @@ function ChatArea() {
   const { friendsOnline } = useConnectionStore();
 
   const {
+    getMessages,
     setSelectedUser,
     selectedUser,
     isGettingMessages,
@@ -94,13 +96,28 @@ function ChatArea() {
   }, [socket]);
 
   useEffect(() => {
-    if (!messageAreaRef.current || !messages?.length) return;
+    if (!messageAreaRef.current || !messages?.length || scrolledTime) return;
 
     messageAreaRef.current.scrollTo({
       top: 0,
       behavior: "smooth",
     });
   }, [messages, selectedUser, isSelectedUserTyping]);
+
+  useEffect(() => {
+    setScrolledTime(1);
+  }, [selectedUser]);
+
+  const handleOnscroll = (e) => {
+    if (isGettingMessages) return;
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    if (scrollHeight + scrollTop - clientHeight < 5) {
+      console.log("scrolled on the top of the message");
+      getMessages(selectedUser, scrolledTime);
+      console.log(scrolledTime);
+      setScrolledTime((prev) => prev + 1);
+    }
+  };
 
   const { friends } = useConnectionStore();
 
@@ -147,7 +164,7 @@ function ChatArea() {
     );
   }
 
-  if (isGettingMessages) {
+  if (isGettingMessages && scrolledTime === 1) {
     return (
       <div className="w-full h-full flex flex-col">
         <div className="w-full flex gap-2 items-center bg-base-100 p-4 py-2 border-b border-base-content/20">
@@ -219,6 +236,7 @@ function ChatArea() {
       {/* messages */}
       <div
         ref={messageAreaRef}
+        onScroll={handleOnscroll}
         className="relative flex flex-col-reverse w-full p-4 flex-1 overflow-y-scroll scrollbar-thumb-base-content/60 ky-700 scrollbar-track-base-content/20 scrollbar-thin [&::-webkit-scrollbar-button]:hidden"
       >
         {isSelectedUserTyping && (
@@ -245,7 +263,6 @@ function ChatArea() {
           </div>
         )}
         {messages &&
-          !isGettingMessages &&
           messages.toReversed().map((message) => {
             return message.receiverId === authUser._id ? (
               <div
@@ -273,7 +290,7 @@ function ChatArea() {
                       )}
                       <span className="w-full flex h-fit">
                         <p className="px-1">{message.text}</p>
-                        <p className="text-xs mt-auto ml-auto text-base-content/50 font-light">
+                        <p className="text-xs mt-auto ml-auto text-base-content/50">
                           {formatMessageTimeForBubble(message?.createdAt)}
                         </p>
                       </span>
@@ -347,7 +364,7 @@ function ChatArea() {
                       )}
                       <span className="w-full flex h-fit">
                         <p className="px-1">{message.text}</p>
-                        <p className="text-xs mt-auto ml-auto text-base-content/50 font-light">
+                        <p className="text-xs mt-auto ml-auto text-base-content/50">
                           {formatMessageTimeForBubble(message?.createdAt)}
                         </p>
                         {message.status === "sent" && (
@@ -390,6 +407,11 @@ function ChatArea() {
             <span className="mx-auto -mt-0.5 inline-block w-0 h-0 border-solid border-t-[10px] border-r-[12px] border-l-[12px] border-b-0 border-l-transparent border-r-transparent border-t-base-content border-b-transparent"></span>
           </span>
         )}
+        {isGettingMessages && scrolledTime !== 1 && (
+          <div className="w-full flex justify-center">
+            <span className="loading loading-spinner loading-xl text-base-content/80"></span>
+          </div>
+        )}
       </div>
       {/* chat options */}
       {isEditingMessage && editingMessageId && (
@@ -406,7 +428,7 @@ function ChatArea() {
           </button>
         </div>
       )}
-      <div className="w-full p-4 flex gap-1">
+      <div className="w-full p-4 flex gap-1 justify-center items-center">
         <label
           htmlFor="imageInput"
           className="cursor-pointer bg-base-300 rounded-full p-1"
@@ -422,7 +444,7 @@ function ChatArea() {
           />
         </label>
         <input
-          className="bg-base-300 w-full rounded-full p-1 px-5 focus:outline-0 text-xl"
+          className="bg-base-300 w-full rounded-full p-1.5 px-5 focus:outline-0 text-xl"
           type="text"
           name="messageInput"
           id="messageInput"

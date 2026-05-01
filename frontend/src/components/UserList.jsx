@@ -92,6 +92,7 @@ function UserList({ setIsSearchingFriends }) {
             <button
               onClick={() => {
                 setSelectedUser(user._id);
+                useChatAndMessageStore.setState({ messages: [] });
                 getMessages(user._id);
               }}
               key={user._id}
