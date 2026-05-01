@@ -5,7 +5,7 @@ import { useAuthStore } from "./useAuthStore";
 import { uid } from "uid";
 
 export const useChatAndMessageStore = create((set, get) => ({
-  messages: null,
+  messages: [],
   selectedUser: null,
 
   isSelectedUserTyping: false,
@@ -15,13 +15,13 @@ export const useChatAndMessageStore = create((set, get) => ({
 
   newMessageUsersSet: new Set(),
 
-  // add user with new message
+  // add user to newMessageUser set with new message
   addNewMessageUser: (user) =>
     set((state) => ({
       newMessageUsersSet: new Set(state.newMessageUsersSet).add(user),
     })),
 
-  // remove user after read the new message
+  // remove user from newMessageUser set after read the new message
   removeNewMessageUser: (user) =>
     set((state) => {
       const next = new Set(state.newMessageUsersSet);
@@ -62,33 +62,83 @@ export const useChatAndMessageStore = create((set, get) => ({
   },
 
   //function to send message to a specific user
-  sendMessage: async (_id, message) => {
+  sendMessage: async (receiverId, message) => {
     const { text, image } = message;
-    if (!_id || (!text && !image)) return;
+    if (!receiverId || (!text && !image)) return;
     const clientMsgId = uid(8);
     try {
       set({ isSendingMessage: true });
 
       const newMessage = {
         senderId: useAuthStore.getState()?.authUser?._id,
-        receiverId: _id,
+        receiverId: receiverId,
         clientMsgId,
         text,
         image,
+        status: null,
       };
 
-      set({ messages: [...get().messages, newMessage] });
+      const selectedUserId = get().selectedUser;
+      if (selectedUserId === receiverId) {
+        set({ messages: [...get().messages, newMessage] });
+      }
 
-      await axiosInstance.post(`/message/send/${_id}`, {
+      await axiosInstance.post(`/message/send/${receiverId}`, {
         text,
         image,
         clientMsgId,
       });
     } catch (error) {
-      console.log("Error in sending messages: ", error);
+      console.log("Error in sending message: ", error);
       toast.error("Error in sending message");
     } finally {
       set({ isSendingMessage: false });
+    }
+  },
+
+  //function to edit an specific message
+  editMessage: async (messageId, receiverId, text) => {
+    if (!messageId || !text || !receiverId) return;
+
+    try {
+      const selectedUserId = get().selectedUser;
+      if (selectedUserId === receiverId) {
+        set((state) => ({
+          messages: [
+            ...state.messages.map((message) => {
+              if (messageId === message._id)
+                return { ...message, text, status: null };
+              return message;
+            }),
+          ],
+        }));
+      }
+
+      await axiosInstance.put(`/message/edit/${messageId}`, { text });
+    } catch (error) {
+      console.log("Error in editing message: ", error);
+      toast.error("Error in editing message");
+    }
+  },
+
+  //function to delete an specific message
+  deleteMessage: async (messageId, receiverId) => {
+    if (!messageId || !receiverId) return;
+
+    try {
+      const selectedUserId = get().selectedUser;
+      if (selectedUserId === receiverId) {
+        set((state) => ({
+          messages: state.messages.filter(
+            (message) => message._id !== messageId,
+          ),
+        }));
+      }
+
+      await axiosInstance.delete(`/message/delete/${messageId}`);
+    } catch (error) {
+      console.log("Error in deleting message: ", error);
+      toast.error("Error in deleting message");
     }
   },
 
@@ -158,6 +208,58 @@ export const useChatAndMessageStore = create((set, get) => ({
                   return newMessage;
                 return message;
               }),
+            ],
+          });
+        }
+      });
+
+      //handeling sent new message
+      socket.on("messageEditedSucessfully", (editedMessage) => {
+        const selectedUserId = get().selectedUser;
+        if (selectedUserId === editedMessage.receiverId) {
+          set({
+            messages: [
+              ...get().messages.map((message) => {
+                if (message._id === editedMessage._id) return editedMessage;
+                return message;
+              }),
+            ],
+          });
+        }
+      });
+
+      //handeling message edited by sender
+      socket.on("messageEdited", (updatedMessage) => {
+        const selectedUserId = get().selectedUser;
+        socket.emit("messageReceived", {
+          _id: updatedMessage._id,
+          clientMsgId: updatedMessage.clientMsgId,
+          status:
+            selectedUserId === updatedMessage.senderId ? "seen" : "received",
+          receivedAt: Date.now(),
+        });
+        if (selectedUserId === updatedMessage.senderId) {
+          set({
+            messages: [
+              ...get().messages.map((message) => {
+                if (message._id === updatedMessage._id) return updatedMessage;
+                return message;
+              }),
+            ],
+          });
+        }
+      });
+
+      //handeling message deleted by sender
+      socket.on("messageDeleted", (deletedMessage) => {
+        console.log("message deleted", deletedMessage._id);
+        const selectedUserId = get().selectedUser;
+        if (selectedUserId === deletedMessage.senderId) {
+          set({
+            messages: [
+              ...get().messages.filter(
+                (message) => message._id !== deletedMessage._id,
+              ),
             ],
           });
         }

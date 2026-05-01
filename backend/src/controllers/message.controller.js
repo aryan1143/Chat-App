@@ -109,6 +109,81 @@ export const sendMessage = async (req, res) => {
   }
 };
 
+//controller to edit a specific message via message id
+export const editMessage = async (req, res) => {
+  const messageId = req.params?.id;
+  const { text } = req.body;
+
+  if (!messageId)
+    return res.status(400).json({ message: "message id is required" });
+  if (!text)
+    return res
+      .status(400)
+      .json({ message: "text is required to edit the message" });
+
+  try {
+    const updatedMessage = await Message.findByIdAndUpdate(
+      messageId,
+      { text, status: "sent" },
+      { returnDocument: "after" },
+    ).lean();
+
+    if (!updatedMessage)
+      return res.status(404).json({ message: "message not found" });
+
+    //emiting to the receiver that the msg is edited in real time using socket.io
+    const receiverSocketIds = await getSocketIds(
+      updatedMessage?.receiverId?.toString(),
+    );
+    receiverSocketIds.forEach((socketId) => {
+      io.to(socketId).emit("messageEdited", updatedMessage);
+    });
+
+    //emiting to the sender that message edited in real time using socket.io
+    const senderSocketIds = await getSocketIds(
+      updatedMessage?.senderId?.toString(),
+    );
+    senderSocketIds.forEach((socketId) => {
+      io.to(socketId).emit("messageEditedSucessfully", updatedMessage);
+    });
+
+    res.status(200).json(updatedMessage);
+  } catch (error) {
+    console.log("Error in edit message message-controller:", error.message);
+    res.status(500).json({ message: "Internal server error!" });
+  }
+};
+
+//controller to delete a specific message via message id
+export const deleteMessage = async (req, res) => {
+  const messageId = req.params?.id;
+
+  if (!messageId)
+    return res
+      .status(400)
+      .json({ message: "message id is required to delete" });
+
+  try {
+    const deletedMessage = await Message.findByIdAndDelete(messageId);
+
+    if (!deletedMessage)
+      return res.status(404).json({ message: "message not found" });
+
+    //emiting to the receiver in real time using socket.io
+    const receiverSocketIds = await getSocketIds(
+      deletedMessage?.receiverId?.toString(),
+    );
+    receiverSocketIds.forEach((sId) => {
+      io.to(sId).emit("messageDeleted", deletedMessage);
+    });
+
+    res.status(204);
+  } catch (error) {
+    console.log("Error in delete message message-controller:", error.message);
+    res.status(500).json({ message: "Internal server error!" });
+  }
+};
+
 //controller to get unread messages
 export const getNewMessages = async (req, res) => {
   const userId = req.user._id;

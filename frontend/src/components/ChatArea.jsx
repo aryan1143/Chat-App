@@ -7,7 +7,9 @@ import {
   MessageSquare,
   Plus,
   SendHorizontal,
+  SquarePen,
   Timer,
+  Trash2,
   X,
 } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
@@ -25,7 +27,11 @@ function ChatArea() {
   const [textMessage, setTextMessage] = useState("");
   const [imageSrc, setImageSrc] = useState("");
   const [selectedUserData, setSelectedUserData] = useState({});
+  const [isEditingMessage, setIsEditingMessage] = useState(false);
+  const [editingMessageId, setEditingMessageId] = useState(null);
   const [showUserInfo, setShowUserInfo] = useState(false);
+  const [activeMsg, setActiveMsg] = useState(null);
+  const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
   const profileOpenBtnRef = useRef(null);
 
   const messageAreaRef = useRef(null);
@@ -45,7 +51,39 @@ function ChatArea() {
     handleSelectedUserStartedTyping,
     handleSelectedUserStoppedTyping,
     isSelectedUserTyping,
+    editMessage,
+    deleteMessage,
   } = useChatAndMessageStore();
+
+  //functions to handle long press on messages
+  let timer;
+
+  const handleTouchStart = (messageId) => {
+    //starts the timer of holdLongpress on message
+    timer = setTimeout(() => {
+      handleLongPress(messageId);
+    }, 600);
+  };
+
+  const handleTouchEnd = () => {
+    // If the user lets go early, cancel the timer
+    clearTimeout(timer);
+  };
+
+  const handleLongPress = (id) => {
+    setActiveMsg(id);
+  };
+
+  useEffect(() => {
+    const onBgClick = (e) => {
+      e.stopPropagation();
+      setActiveMsg(null);
+    };
+    window.addEventListener("click", onBgClick);
+    return () => {
+      window.addEventListener("click", onBgClick);
+    };
+  }, []);
 
   const handleTyping = useTypingStatus(selectedUser, authUser._id);
 
@@ -76,7 +114,13 @@ function ChatArea() {
   };
 
   const handleSendMessage = () => {
-    sendMessage(selectedUser, { text: textMessage, image: imageSrc });
+    if (isEditingMessage && editingMessageId) {
+      editMessage(editingMessageId, selectedUser, textMessage);
+      setIsEditingMessage(false);
+      setEditingMessageId(null);
+    } else {
+      sendMessage(selectedUser, { text: textMessage, image: imageSrc });
+    }
     setTextMessage("");
     setImageSrc(null);
   };
@@ -206,7 +250,7 @@ function ChatArea() {
             return message.receiverId === authUser._id ? (
               <div
                 key={message.clientMsgId}
-                className="mr-auto flex gap-1 w-fit h-fit my-1 lg:my-2 text-2sm"
+                className="message mr-auto flex gap-1 w-fit h-fit my-1 lg:my-2 text-2sm"
               >
                 <div className="h-full w-8 lg:w-10 flex items-end shrink-0">
                   <img
@@ -235,12 +279,55 @@ function ChatArea() {
             ) : (
               <div
                 key={message.clientMsgId}
-                className="ml-auto flex gap-1 w-fit h-fit my-1 lg:my-2 text-2sm"
+                className="message relative ml-auto flex gap-1 w-fit h-fit my-1 lg:my-2 text-2sm"
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                  handleTouchStart(message._id);
+                }}
+                onMouseUp={handleTouchEnd}
+                onTouchStart={(e) => {
+                  e.stopPropagation();
+                  handleTouchStart(message._id);
+                }}
+                onTouchEnd={handleTouchEnd}
               >
-                <div className="flex flex-col">
+                {activeMsg === message._id && (
+                  <span className="absolute flex gap-4 -bottom-5 -left-2 lg:left-10 z-25 rounded-full bg-base-200 p-1.5 px-4 border border-base-content/50">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsEditingMessage(true);
+                        setEditingMessageId(activeMsg);
+                        setTextMessage(message?.text || "");
+                      }}
+                      className="flex flex-col justify-center items-center"
+                    >
+                      <SquarePen className="size-6" />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteMessage(message._id, selectedUser);
+                      }}
+                      className="flex flex-col justify-center items-center"
+                    >
+                      <Trash2 className="size-6 text-red-500" />
+                    </button>
+                  </span>
+                )}
+                <div className="relative flex flex-col">
                   <p className="text-xs ml-auto mr-2">
                     {formatMessageTime(message.createdAt)}
                   </p>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveMsg(message._id);
+                    }}
+                    className="hidden opacity-30 absolute mt-2 rounded-full hover:bg-base-300 size-6 hover:opacity-100 md:flex justify-center items-center top-[50%] lg:left-2 -translate-y-1/2 mb-auto ml-auto"
+                  >
+                    <EllipsisVertical className="size-3.5" />
+                  </button>
                   <div className="flex justify-end">
                     <div className="p-1 w-fit rounded-br-xs rounded-md bg-base-300 wrap-anywhere ml-5 lg:ml-10">
                       {message?.image && (
@@ -256,16 +343,16 @@ function ChatArea() {
                       <span className="w-full flex h-fit">
                         <p className="px-1">{message.text}</p>
                         {message.status === "sent" && (
-                          <Check className="ml-auto size-3 lg:size-3.5 mt-auto opacity-60 stroke-3" />
+                          <Check className="ml-auto size-3 lg:size-3.5 mt-auto opacity-60 stroke-3 shrink-0" />
                         )}
                         {message.status === "received" && (
-                          <CheckCheck className="ml-auto size-3 lg:size-3.5 mt-auto opacity-60 stroke-3" />
+                          <CheckCheck className="ml-auto size-3 lg:size-3.5 mt-auto opacity-60 stroke-3 shrink-0" />
                         )}
                         {message.status === "seen" && (
-                          <CheckCheck className="ml-auto size-3 lg:size-3.5 mt-auto opacity-80 text-[#468aff] stroke-3" />
+                          <CheckCheck className="ml-auto size-3 lg:size-3.5 mt-auto opacity-80 text-[#468aff] stroke-3 shrink-0" />
                         )}
-                        {!message?.createdAt && (
-                          <Timer className="ml-auto size-3 lg:size-3.5 mt-auto opacity-60 stroke-3" />
+                        {message.status === null && (
+                          <Timer className="ml-auto size-3 lg:size-3.5 mt-auto opacity-60 stroke-3 shrink-0" />
                         )}
                       </span>
                     </div>
@@ -297,6 +384,20 @@ function ChatArea() {
         )}
       </div>
       {/* chat options */}
+      {isEditingMessage && editingMessageId && (
+        <div className="w-full p-2 flex justify-between border-t border-base-content/30">
+          <p>Editing message</p>
+          <button
+            onClick={() => {
+              setIsEditingMessage(false);
+              setEditingMessageId(null);
+              setTextMessage("");
+            }}
+          >
+            <X />
+          </button>
+        </div>
+      )}
       <div className="w-full p-4 flex gap-1">
         <label
           htmlFor="imageInput"

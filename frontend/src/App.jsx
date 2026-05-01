@@ -34,7 +34,7 @@ function App() {
 
   return (
     <>
-      <div className="w-dvw h-dvh min-h-dvh overflow-hidden flex flex-col bg-base-100 text-base-content">
+      <div className="w-dvw h-dvh min-h-dvh overflow-hidden flex flex-col bg-base-100 text-base-content select-none">
         <NavBar />
 
         <div className="flex-1 min-h-0">

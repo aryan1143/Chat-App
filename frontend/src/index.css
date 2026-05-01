@@ -14,6 +14,12 @@ button {
   animation: jump 1.5s ease-in-out infinite;
 }
 
+.message {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 @keyframes jump {
   0%,
   100% {
