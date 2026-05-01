@@ -260,6 +260,10 @@ export const acceptRequest = async (req, res) => {
 
   try {
     const connection = await Connections.findById(connectionID);
+    const otherUserId =
+      connection.requesterID === userId
+        ? connection.recipientID
+        : connection.requesterID;
 
     if (!connection) {
       return res.status(404).json({ message: "Connection not found" });
@@ -276,7 +280,15 @@ export const acceptRequest = async (req, res) => {
     connection.status = "accepted";
     await connection.save();
 
-    //todo: socket.io code will go here
+    const userData = await User.findById(userId)
+      .select("fullName email _id profilePic")
+      .lean();
+
+    //emiting to the other user
+    const otherUserSocketIds = await getSocketIds(otherUserId.toString());
+    otherUserSocketIds.forEach((socketId) => {
+      io.to(socketId).emit("acceptedFriendRequest", userData);
+    });
 
     return res.status(200).json(connection.toObject());
   } catch (error) {

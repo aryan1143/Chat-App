@@ -38,7 +38,14 @@ export const useConnectionStore = create((set, get) => ({
         set({ receivedRequests: [connection] });
       });
 
+      socket.on("acceptedFriendRequest", (user) => {
+        set({ friends: [user, ...get().friends] });
+      });
+
       socket.on("friendDeleted", (connection) => {
+        toast("User unfriended", {
+          icon: "😒",
+        });
         set({
           friends: get().friends.filter(
             (friend) =>
