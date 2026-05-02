@@ -6,6 +6,8 @@ import toast from "react-hot-toast";
 import { useAuthStore } from "../store/useAuthStore";
 import { useChatAndMessageStore } from "../store/useChatAndMessageStore";
 import { useConnectionStore } from "../store/useConnectionStore";
+import { getDataLocal, setDataLocal } from "../lib/localStorageUtils";
+import { useSettingStore } from "../store/useSettingAuth";
 
 function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -31,6 +33,7 @@ function LoginPage() {
     setDefaultValuesOfMessageStore();
     setDefaultValuesOfConnectionStore();
     login(formData);
+    setDataLocal("isNotFirstTime", false);
   };
 
   return (

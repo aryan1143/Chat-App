@@ -1,8 +1,10 @@
 import express from "express";
 import {
   checkUser,
+  deleteFcmToken,
   login,
   logout,
+  setFcmToken,
   signup,
   updatePrivacy,
   updateProfile,
@@ -19,7 +21,13 @@ router.post("/signup", signup);
 router.post("/login", login);
 
 //logout route
-router.post("/logout", logout);
+router.post("/logout", protectRoute, logout);
+
+//setting FCM token route
+router.post("/fcm-token", protectRoute, setFcmToken);
+
+//deleting FCM token route
+router.delete("/fcm-token", protectRoute, deleteFcmToken);
 
 //update profile route
 router.put("/update-profile", protectRoute, updateProfile);

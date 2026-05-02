@@ -4,6 +4,8 @@ import { themes } from "../lib/themes.json";
 import { getDataLocal, setDataLocal } from "../lib/localStorageUtils";
 import { useAuthStore } from "./useAuthStore";
 import { axiosInstance } from "../lib/axios";
+import { getToken } from "firebase/messaging";
+import { messaging } from "../lib/firebase";
 
 const getInitialTheme = () => {
   if (typeof window === "undefined") {
@@ -61,6 +63,7 @@ export const useSettingStore = create((set, get) => ({
     try {
       if (!value) {
         set({ notification: false });
+        await axiosInstance.delete("/auth/fcm-token");
         setDataLocal("notification", false);
         return toast.success("Notifications disabled 🔕");
       }
@@ -83,10 +86,26 @@ export const useSettingStore = create((set, get) => ({
         }
       }
 
-      set({ notification: true });
-      setDataLocal("notification", true);
+      try {
+        set({ notification: true });
+        const token = await getToken(messaging, {
+          vapidKey:
+            "BAkYGRSHnHaU4amUtz9589jicuj8Gm-B1VjjlQe8Dy0gFd6WvdLuXo_WrZ73T7aX6rDz4ChoVoNcg5wPgr3eAEo",
+        });
 
-      toast.success("Notifications enabled 🔔");
+        await axiosInstance.post("/auth/fcm-token", { token });
+
+        setDataLocal("notification", true);
+
+        toast.success("Notifications enabled 🔔");
+      } catch (error) {
+        set({ notification: false });
+        console.log(
+          "Error in geting token for notification setNotificationSetting:",
+          error,
+        );
+        toast.error("Error in enabling the notification");
+      }
     } catch (err) {
       set({ isGettingNotificationPermission: false });
       toast.error("Something went wrong");

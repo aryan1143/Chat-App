@@ -96,12 +96,49 @@ export const login = async (req, res) => {
 };
 
 //function to logout the user---------------------
-export const logout = (req, res) => {
+export const logout = async (req, res) => {
+  const userId = req.user._id;
   try {
+    await User.findByIdAndUpdate(userId, { fcmToken: null });
     res.cookie("jwt", "", { maxAge: 0 });
     res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
     console.log("Error in logout auth-controller:", error.message);
+    res.status(500).json({ message: "Internal server error!" });
+  }
+};
+
+//function to set FCM token to the user in DB----------
+export const setFcmToken = async (req, res) => {
+  const { token } = req.body;
+  const userId = req.user._id;
+
+  try {
+    if (!token) {
+      return res
+        .status(400)
+        .json({ message: "Token is required to set FCM token" });
+    }
+
+    await User.findByIdAndUpdate(userId, { fcmToken: token });
+
+    res.status(200).json({ message: "FCM token updated" });
+  } catch (error) {
+    console.log("Error in setFcmToken auth-controller:", error.message);
+    res.status(500).json({ message: "Internal server error!" });
+  }
+};
+
+//function to delete FCM token to the user in DB----------
+export const deleteFcmToken = async (req, res) => {
+  const userId = req.user._id;
+
+  try {
+    await User.findByIdAndUpdate(userId, { fcmToken: null });
+
+    res.status(200).json({ message: "FCM token deleted" });
+  } catch (error) {
+    console.log("Error in deleteFcmToken auth-controller:", error.message);
     res.status(500).json({ message: "Internal server error!" });
   }
 };

@@ -43,6 +43,9 @@ const userSchema = new mongoose.Schema(
     lastOnline: {
       type: Date,
     },
+    fcmToken: {
+      type: String,
+    },
   },
   { timestamps: true },
 );

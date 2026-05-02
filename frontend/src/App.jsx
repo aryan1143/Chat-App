@@ -20,7 +20,8 @@ function App() {
     handleSelectedUserStartedTyping,
     handleSelectedUserStoppedTyping,
   } = useChatAndMessageStore();
-  const { setInitialPrivacySetting } = useSettingStore();
+  const { setInitialPrivacySetting, setNotificationSetting } =
+    useSettingStore();
 
   useEffect(() => {
     checkAuth();

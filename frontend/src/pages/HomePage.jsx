@@ -6,6 +6,8 @@ import SearchAndAddFriends from "../components/SearchAndAddFriends";
 import { useState } from "react";
 import { useConnectionStore } from "../store/useConnectionStore";
 import { useAuthStore } from "../store/useAuthStore";
+import { useSettingStore } from "../store/useSettingAuth";
+import { getDataLocal, setDataLocal } from "../lib/localStorageUtils";
 
 function HomePage() {
   const [isSearchingFriends, setIsSearchingFriends] = useState(false);
@@ -13,6 +15,16 @@ function HomePage() {
   const { getReceivedRequests, getFriends, getRealTimeConnectionData } =
     useConnectionStore();
   const { socket } = useAuthStore();
+  const { setNotificationSetting } = useSettingStore();
+
+  useEffect(() => {
+    const isNotFirstTime = getDataLocal("isNotFirstTime");
+    if (!isNotFirstTime) {
+      setDataLocal("isNotFirstTime", true);
+
+      setNotificationSetting(true);
+    }
+  }, []);
 
   //getting initial data
   useEffect(() => {

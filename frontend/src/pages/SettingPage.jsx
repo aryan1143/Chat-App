@@ -60,7 +60,7 @@ function SettingPage() {
              lg:peer-checked:hover:bg-primary/85"
             >
               <Bell className="size-5" />
-              Notification & Sound
+              Notification
             </label>
           </li>
           <li className="p-2 w-full">
@@ -131,9 +131,7 @@ function SettingPage() {
         {currentSetting === "notificationAndSound" && (
           <div className="h-full w-full p-5 flex flex-col items-center gap-3">
             <fieldset className="fieldset bg-base-100 border-base-400 rounded-box w-9/10 border p-4 mx-2">
-              <legend className="fieldset-legend text-xl">
-                Notification & Sound
-              </legend>
+              <legend className="fieldset-legend text-xl">Notification</legend>
               <label className="label py-5 px-3 text-xl flex items-center gap-3">
                 <input
                   onChange={() => setNotificationSetting(!notification)}

@@ -30,6 +30,11 @@ export async function getSocketIds(userId) {
   return await redisClient.sMembers(`user:${userId}:sockets`);
 }
 
+// helper to check if user is online
+export async function isOnline(userId) {
+  return await redisClient.sIsMember("onlineUsers", userId);
+}
+
 io.on("connection", async (socket) => {
   const userId = socket.handshake.query.userId;
 

@@ -1,10 +1,11 @@
 import User from "../models/user.model.js";
 import Message from "../models/message.model.js";
 import imagekit from "../lib/imagekit.js";
-import { getSocketIds, io } from "../lib/socket.js";
+import { getSocketIds, io, isOnline } from "../lib/socket.js";
 import Connections from "../models/connections.model.js";
 import { read } from "node:fs";
 import mongoose from "mongoose";
+import { sendPushNotification } from "../lib/utils.js";
 
 //controller to get messages with a specific user
 export const getMessages = async (req, res) => {
@@ -105,7 +106,28 @@ export const sendMessage = async (req, res) => {
       });
     }
 
-    //emitting the message to the sender
+    const isReceiverOnline = await isOnline(receiverId.toString());
+
+    if (receiverSocketIds.length === 0 || !isReceiverOnline) {
+      try {
+        const { fcmToken } = await User.findById(receiverId).select("fcmToken");
+        if (fcmToken) {
+          const notificationMessage = [text, image && "📷 Image"]
+            .filter(Boolean)
+            .join(" ");
+          console.log("Sending notification to:", receiverId);
+          await sendPushNotification(
+            fcmToken,
+            req.user.fullName,
+            notificationMessage,
+          );
+        }
+      } catch (error) {
+        throw new Error(error);
+      }
+    }
+
+    //emitting the message sent successfully to the sender
     const senderSocketIds = await getSocketIds(myId.toString());
     if (senderSocketIds?.length >= 1) {
       senderSocketIds.forEach((socketId) => {

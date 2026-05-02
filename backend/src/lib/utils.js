@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import Message from "../models/message.model.js";
 import { getSocketIds, io } from "./socket.js";
 import User from "../models/user.model.js";
+import admin from "./firebaseAdmin.js";
 
 //function to generate JWT of user obj
 export function generateJWT(userId, res) {
@@ -57,3 +58,21 @@ export async function updateLastOnline(userId) {
     throw new Error(error);
   }
 }
+
+//sending push notification using firebase sdk
+export const sendPushNotification = async (
+  fcmToken,
+  senderName,
+  messageText,
+) => {
+  try {
+    const message = {
+      token: fcmToken,
+      data: { type: "chat", title: senderName, body: messageText },
+    };
+    const response = await admin.messaging().send(message);
+    console.log("Notification sent:", response);
+  } catch (error) {
+    console.error("Error sending notification:", error);
+  }
+};
