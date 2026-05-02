@@ -31,7 +31,15 @@ const userSchema = new mongoose.Schema(
     profilePicId: {
       type: String,
       default: "",
-    }
+    },
+    lastSeenAndOnline: {
+      type: Boolean,
+      default: true,
+    },
+    readReceipt: {
+      type: Boolean,
+      default: true,
+    },
   },
   { timestamps: true },
 );

@@ -1,6 +1,13 @@
-import express from 'express';
-import { checkUser, login, logout, signup, updateProfile } from '../controllers/auth.controller.js';
-import { protectRoute } from '../middleware/auth.middleware.js';
+import express from "express";
+import {
+  checkUser,
+  login,
+  logout,
+  signup,
+  updatePrivacy,
+  updateProfile,
+} from "../controllers/auth.controller.js";
+import { protectRoute } from "../middleware/auth.middleware.js";
 
 //auth router-----------------------------------------!
 const router = express.Router();
@@ -16,6 +23,9 @@ router.post("/logout", logout);
 
 //update profile route
 router.put("/update-profile", protectRoute, updateProfile);
+
+//update privacy settings route
+router.put("/update-privacy", protectRoute, updatePrivacy);
 
 //check-user route
 router.get("/check", protectRoute, checkUser);

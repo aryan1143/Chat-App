@@ -47,7 +47,6 @@ function ChatArea() {
     selectedUser,
     isGettingMessages,
     messages,
-    users,
     sendMessage,
     subscribeToMessages,
     handleSelectedUserStartedTyping,

@@ -2,6 +2,8 @@ import toast from "react-hot-toast";
 import { create } from "zustand";
 import { themes } from "../lib/themes.json";
 import { getDataLocal, setDataLocal } from "../lib/localStorageUtils";
+import { useAuthStore } from "./useAuthStore";
+import { axiosInstance } from "../lib/axios";
 
 const getInitialTheme = () => {
   if (typeof window === "undefined") {
@@ -33,24 +35,15 @@ const getInitialNotification = () => {
   return false;
 };
 
-const getInitialSound = () => {
-  if (typeof window === "undefined") return false;
-
-  const savedSoundValue = getDataLocal("sound");
-  return savedSoundValue;
-};
-
-export const useSettingStore = create((set) => ({
+export const useSettingStore = create((set, get) => ({
   theme: getInitialTheme(),
 
   //notification settings
-  sound: getInitialSound(),
   notification: getInitialNotification(),
 
   //privacy settings
-  lastSeenAndOnline: true,
-  showAbout: true,
-  readRecipts: true,
+  lastSeenAndOnline: false,
+  readReceipt: false,
 
   isGettingNotificationPermission: false,
 
@@ -100,16 +93,25 @@ export const useSettingStore = create((set) => ({
     }
   },
 
-  setSoundSetting: (value) => {
-    set({sound: value});
-    setDataLocal('sound', value);
-    toast.success(value ? "Sound Enabled Successfully" : "Sound Disabled Successfully");
+  //functionn to set initial privacy settings
+  setInitialPrivacySetting: (value) => {
+    if (!value || Object.keys(value).length < 1) return;
+    set({ ...value });
   },
 
   //functionn to set privacy settings
-  setPrivacySetting: (value) => {
+  setPrivacySetting: async (value) => {
     if (!value || Object.keys(value).length < 1) return;
-    set({ ...value });
-    toast.success("Setting updated successfully");
+    const { lastSeenAndOnline, readReceipt } = get();
+    try {
+      set({ ...value });
+      console.log(value);
+      await axiosInstance.put("/auth/update-privacy", value);
+      toast.success("Setting updated successfully");
+    } catch (error) {
+      console.log("Error in set privacy settings setting-auth: ", error);
+      set({ lastSeenAndOnline, readReceipt });
+      toast.error("Failed to update setting");
+    }
   },
 }));

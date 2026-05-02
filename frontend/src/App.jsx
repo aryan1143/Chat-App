@@ -10,11 +10,14 @@ import { useEffect } from "react";
 import { useAuthStore } from "./store/useAuthStore";
 import { Toaster } from "react-hot-toast";
 import { useChatAndMessageStore } from "./store/useChatAndMessageStore";
+import { useSettingStore } from "./store/useSettingAuth";
 
 function App() {
   const { checkAuth, authUser, isCheckingAuth } = useAuthStore();
   const { getNewMessages } = useChatAndMessageStore();
+  const { setInitialPrivacySetting } = useSettingStore();
 
+  console.log(authUser);
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
@@ -22,6 +25,10 @@ function App() {
   useEffect(() => {
     if (!authUser) return;
     getNewMessages();
+    setInitialPrivacySetting({
+      lastSeenAndOnline: authUser?.lastSeenAndOnline,
+      readReceipt: authUser?.readReceipt,
+    });
   }, [authUser]);
 
   if (isCheckingAuth && !authUser) {

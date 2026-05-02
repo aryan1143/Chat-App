@@ -9,14 +9,11 @@ function SettingPage() {
   const {
     setThemeSetting,
     theme,
-    setSoundSetting,
     setNotificationSetting,
     notification,
-    sound,
     setPrivacySetting,
     lastSeenAndOnline,
-    showAbout,
-    readRecipts,
+    readReceipt,
   } = useSettingStore();
 
   return (
@@ -130,7 +127,7 @@ function SettingPage() {
           </div>
         )}
 
-        {/* notification and sound settings */}
+        {/* notification setting */}
         {currentSetting === "notificationAndSound" && (
           <div className="h-full w-full p-5 flex flex-col items-center gap-3">
             <fieldset className="fieldset bg-base-100 border-base-400 rounded-box w-9/10 border p-4 mx-2">
@@ -138,12 +135,13 @@ function SettingPage() {
                 Notification & Sound
               </legend>
               <label className="label py-5 px-3 text-xl flex items-center gap-3">
-                <input onChange={()=>setNotificationSetting(!notification)} type="checkbox" checked={notification} className="toggle" />
+                <input
+                  onChange={() => setNotificationSetting(!notification)}
+                  type="checkbox"
+                  checked={notification}
+                  className="toggle"
+                />
                 Send Notification
-              </label>
-              <label className="label py-5 px-3 text-xl flex items-center gap-3">
-                <input onChange={()=>setSoundSetting(!sound)} type="checkbox" checked={sound} className="toggle" />
-                Notification Sound
               </label>
             </fieldset>
           </div>
@@ -155,15 +153,25 @@ function SettingPage() {
             <fieldset className="fieldset bg-base-100 border-base-400 rounded-box w-9/10 border p-4 mx-2">
               <legend className="fieldset-legend text-xl">Privacy</legend>
               <label className="label py-5 px-3 text-xl flex items-center gap-3">
-                <input onChange={()=>setPrivacySetting({lastSeenAndOnline: !lastSeenAndOnline})} type="checkbox" checked={lastSeenAndOnline} className="toggle" />
+                <input
+                  onChange={() =>
+                    setPrivacySetting({ lastSeenAndOnline: !lastSeenAndOnline })
+                  }
+                  type="checkbox"
+                  checked={lastSeenAndOnline}
+                  className="toggle"
+                />
                 Show Last Seen & Online
               </label>
               <label className="label py-5 px-3 text-xl flex items-center gap-3">
-                <input onChange={()=>setPrivacySetting({showAbout: !showAbout})} type="checkbox" checked={showAbout} className="toggle" />
-                Show about
-              </label>
-              <label className="label py-5 px-3 text-xl flex items-center gap-3">
-                <input onChange={()=>setPrivacySetting({readRecipts: !readRecipts})} type="checkbox" checked={readRecipts} className="toggle" />
+                <input
+                  onChange={() =>
+                    setPrivacySetting({ readReceipt: !readReceipt })
+                  }
+                  type="checkbox"
+                  checked={readReceipt}
+                  className="toggle"
+                />
                 Read recipts
               </label>
             </fieldset>
