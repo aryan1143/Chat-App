@@ -5,7 +5,7 @@ import { LogOut } from "lucide-react";
 import { io } from "socket.io-client";
 import { useConnectionStore } from "./useConnectionStore";
 
-const BASE_URL = "http://localhost:3001";
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 export const useAuthStore = create((set, get) => ({
   authUser: null,

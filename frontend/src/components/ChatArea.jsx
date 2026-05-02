@@ -23,7 +23,7 @@ import ShowProfileBox from "./ShowProfileBox";
 import handleUserTypingStatus from "../lib/handleUserTypingStatus";
 import useTypingStatus from "../lib/handleUserTypingStatus";
 
-function ChatArea() {
+function ChatArea({ setIsSearchingFriends }) {
   const [textMessage, setTextMessage] = useState("");
   const [imageSrc, setImageSrc] = useState("");
   const [selectedUserData, setSelectedUserData] = useState({});
@@ -141,14 +141,23 @@ function ChatArea() {
   if (!selectedUser) {
     return (
       <div className="h-full w-full p-4">
-        <div className="w-full h-full flex flex-col gap-2 justify-center items-center">
-          <div className="p-3 bg-primary/20 rounded-xl w-fit bubble">
-            <MessageSquare className="size-8 text-primary" />
+        <div className="w-full h-full flex flex-col gap-3 justify-center items-center text-center">
+          <div className="p-1 bubble">
+            <img src="./logo-256.png" className="size-28" />
           </div>
-          <h1 className="text-2xl font-bold mt-2">Welcome to Chat App</h1>
-          <p className="text-base-content/60">
+          <h1 className="text-2xl font-bold mt-2">Welcome to Yappy Talk</h1>
+          <p className="text-base-content/60 max-w-sm">
             Select a conversation from the sidebar to start chatting
           </p>
+          {friends.length === 0 && (
+            <button
+              onClick={() => setIsSearchingFriends(true)}
+              className="mt-2 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 font-semibold text-primary-content"
+            >
+              <Plus className="size-5" />
+              Add Friends
+            </button>
+          )}
         </div>
       </div>
     );
@@ -258,6 +267,26 @@ function ChatArea() {
         onScroll={handleOnscroll}
         className="relative flex flex-col-reverse w-full p-4 flex-1 overflow-y-scroll scrollbar-thumb-base-content/60 ky-700 scrollbar-track-base-content/20 scrollbar-thin [&::-webkit-scrollbar-button]:hidden"
       >
+        {!messages?.length && !isGettingMessages && (
+          <div className="flex min-h-full w-full items-center justify-center py-10 text-center">
+            <div className="max-w-sm rounded-3xl border border-base-content/10 bg-base-100/80 px-6 py-8 shadow-sm backdrop-blur-sm">
+              <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-primary/15 text-primary">
+                <MessageSquare className="size-7" />
+              </div>
+              <h3 className="text-xl font-semibold">Start the conversation</h3>
+              <p className="mt-2 text-sm text-base-content/60">
+                Send a quick hello to break the ice.
+              </p>
+              <button
+                onClick={() => sendMessage(selectedUser, { text: "hello" })}
+                className="mt-5 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 font-semibold text-primary-content"
+              >
+                <SendHorizontal className="size-4" />
+                hello
+              </button>
+            </div>
+          </div>
+        )}
         {isSelectedUserTyping && (
           <div
             key={"typing"}

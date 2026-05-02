@@ -16,9 +16,11 @@ app.use(express.json({ limit: "50mb" }));
 //middleware to parse the cookie
 app.use(cookieParser());
 
+const CLIENT_URL = process.env.CLIENT_URL;
+
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: CLIENT_URL,
     credentials: true,
   }),
 );

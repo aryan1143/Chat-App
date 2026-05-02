@@ -11,6 +11,7 @@ import { useAuthStore } from "./store/useAuthStore";
 import { Toaster } from "react-hot-toast";
 import { useChatAndMessageStore } from "./store/useChatAndMessageStore";
 import { useSettingStore } from "./store/useSettingAuth";
+import { initServiceWorkerConfig } from "./lib/serviceWorkerUtils";
 
 function App() {
   const { checkAuth, authUser, isCheckingAuth, socket } = useAuthStore();
@@ -25,6 +26,7 @@ function App() {
 
   useEffect(() => {
     checkAuth();
+    initServiceWorkerConfig();
   }, [checkAuth]);
 
   useEffect(() => {

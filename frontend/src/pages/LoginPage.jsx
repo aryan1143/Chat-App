@@ -41,8 +41,8 @@ function LoginPage() {
       {/* left side */}
       <div className="flex h-full flex-col gap-2 justify-center items-center px-4 py-8">
         {/*message-icon*/}
-        <div className="p-3 bg-primary/20 rounded-xl">
-          <MessageSquare className="size-8 text-primary" />
+        <div className="p-1">
+          <img src="./logo-256.png" className="size-24" />
         </div>
         <h1 className="text-2xl font-bold mt-2">Login</h1>
         <p className="text-base-content/60">Login to start your experience</p>

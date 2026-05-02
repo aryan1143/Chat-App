@@ -55,7 +55,7 @@ function HomePage() {
           selectedUser ? "w-full block" : "hidden md:block"
         }`}
       >
-        <ChatArea />
+        <ChatArea setIsSearchingFriends={setIsSearchingFriends} />
       </div>
     </div>
   );

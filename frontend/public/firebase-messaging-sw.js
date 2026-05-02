@@ -6,17 +6,39 @@ importScripts(
   "https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging-compat.js",
 );
 
-// Initialize Firebase
-firebase.initializeApp({
-  apiKey: "AIzaSyDcAA6DHJTjXViSMt62q4ZJ5RvUU9gkiEs",
-  authDomain: "yappynow-8384c.firebaseapp.com",
-  projectId: "yappynow-8384c",
-  messagingSenderId: "1041335230862",
-  appId: "1:1041335230862:web:fccf9e59b8377ea64e04df",
-});
+// Firebase config - set via self.firebaseConfig or use environment defaults
+let messaging;
 
-// Initialize messaging
-const messaging = firebase.messaging();
+// Initialize Firebase with config passed from main thread or environment
+const initializeFirebase = () => {
+  const firebaseConfig = self.firebaseConfig || {
+    apiKey: self.FIREBASE_API_KEY,
+    authDomain: self.FIREBASE_AUTH_DOMAIN,
+    projectId: self.FIREBASE_PROJECT_ID,
+    messagingSenderId: self.FIREBASE_MESSAGING_SENDER_ID,
+    appId: self.FIREBASE_APP_ID,
+  };
+
+  try {
+    firebase.initializeApp(firebaseConfig);
+    messaging = firebase.messaging();
+  } catch (error) {
+    console.error("Failed to initialize Firebase:", error);
+  }
+};
+
+// Initialize on service worker start
+initializeFirebase();
+
+// Listen for config messages from main thread
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "FIREBASE_CONFIG") {
+    self.firebaseConfig = event.data.config;
+    if (!messaging) {
+      initializeFirebase();
+    }
+  }
+});
 
 messaging.onBackgroundMessage((payload) => {
   console.log("Background payload received:", payload);
@@ -35,7 +57,7 @@ messaging.onBackgroundMessage((payload) => {
   self.addEventListener("notificationclick", (event) => {
     event.notification.close();
 
-    const url = "http://localhost:5173";
+    const url = self.FRONTEND_URL || "http://localhost:5173";
 
     event.waitUntil(
       clients
