@@ -117,11 +117,17 @@ export const useAuthStore = create((set, get) => ({
       useConnectionStore.setState({ friendsOnline: data });
     });
 
-    socket.on("friendOffline", (id) => {
+    socket.on("friendOffline", ({ userId, lastOnline }) => {
       useConnectionStore.setState((state) => ({
         friendsOnline: state.friendsOnline.filter(
-          (onlineFriendId) => onlineFriendId != id,
+          (onlineFriendId) => onlineFriendId != userId,
         ),
+        friends: state.friends.map((friend) => {
+          if (friend._id === userId) {
+            return { ...friend, lastOnline };
+          }
+          return friend;
+        }),
       }));
     });
 

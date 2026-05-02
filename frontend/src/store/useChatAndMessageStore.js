@@ -147,6 +147,30 @@ export const useChatAndMessageStore = create((set, get) => ({
     }
   },
 
+  //function to delete all messages with a specific user
+  deleteAllMessage: async (otherUserId) => {
+    if (!otherUserId) return;
+
+    const allMessages = get()?.messages;
+    try {
+      const selectedUserId = get().selectedUser;
+      if (selectedUserId === otherUserId) {
+        set((state) => ({
+          messages: [],
+        }));
+      }
+
+      await axiosInstance.delete(`/message/delete-all/${otherUserId}`);
+      toast.success("Chat deleted successfully");
+    } catch (error) {
+      set((state) => ({
+        messages: allMessages,
+      }));
+      console.log("Error in deleting all messages: ", error);
+      toast.error("Failed to delete all messages");
+    }
+  },
+
   //function to set selected user
   setSelectedUser: (_id) => {
     set({ selectedUser: _id });
@@ -265,15 +289,26 @@ export const useChatAndMessageStore = create((set, get) => ({
 
       //handeling message deleted by sender
       socket.on("messageDeleted", (deletedMessage) => {
-        console.log("message deleted", deletedMessage._id);
         const selectedUserId = get().selectedUser;
         if (selectedUserId === deletedMessage.senderId) {
+          toast("Message deleted by user 😒");
           set({
             messages: [
               ...get().messages.filter(
                 (message) => message._id !== deletedMessage._id,
               ),
             ],
+          });
+        }
+      });
+
+      //handeling all message deleted by other user
+      socket.on("allMessageDeleted", (otherUserId) => {
+        const selectedUserId = get().selectedUser;
+        if (selectedUserId === otherUserId) {
+          toast("Chat deleted by user 😒");
+          set({
+            messages: [],
           });
         }
       });

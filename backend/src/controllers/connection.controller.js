@@ -24,7 +24,9 @@ export const findUsers = async (req, res) => {
         { email: { $regex: searchTerm, $options: "i" } },
       ],
     })
-      .select("_id email fullName profilePic lastSeenAndOnline readReceipt")
+      .select(
+        "_id email fullName profilePic showLastSeenAndOnline readReceipt lastOnline",
+      )
       .limit(10)
       .lean();
 
@@ -115,7 +117,9 @@ export const findFriendRequests = async (req, res) => {
     const requestersData = await User.find({
       _id: { $in: requesterIDs },
     })
-      .select("_id fullName profilePic email lastSeenAndOnline readReceipt")
+      .select(
+        "_id fullName profilePic email showLastSeenAndOnline readReceipt lastOnline",
+      )
       .lean();
 
     const finalRequestersData = requestersData.map((user) => ({
@@ -170,7 +174,9 @@ export const findFriends = async (req, res) => {
     const requestersData = await User.find({
       _id: { $in: requesterIDs },
     })
-      .select("_id fullName profilePic email bio lastSeenAndOnline readReceipt")
+      .select(
+        "_id fullName profilePic email bio showLastSeenAndOnline readReceipt lastOnline",
+      )
       .lean();
 
     const finalRequestersData = requestersData.map((user) => ({
@@ -203,7 +209,9 @@ export const sendRequest = async (req, res) => {
 
     //finding the requester from User model (DB)
     const requesterData = await User.findById(requesterID)
-      .select("fullName email _id profilePic lastSeenAndOnline readReceipt")
+      .select(
+        "fullName email _id profilePic showLastSeenAndOnline readReceipt lastOnline",
+      )
       .lean();
 
     if (!recipientData)
@@ -281,7 +289,9 @@ export const acceptRequest = async (req, res) => {
     await connection.save();
 
     const userData = await User.findById(userId)
-      .select("fullName email _id profilePic lastSeenAndOnline readReceipt")
+      .select(
+        "fullName email _id profilePic showLastSeenAndOnline readReceipt lastOnline",
+      )
       .lean();
 
     //emiting to the other user

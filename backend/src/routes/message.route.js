@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   deleteMessage,
+  deleteAllMessage,
   editMessage,
   getMessages,
   getNewMessages,
@@ -22,6 +23,9 @@ router.put("/edit/:id", protectRoute, editMessage);
 
 //route to delete message via message id
 router.delete("/delete/:id", protectRoute, deleteMessage);
+
+//route to delete all messages with any specific user
+router.delete("/delete-all/:id", protectRoute, deleteAllMessage);
 
 //route to get all new messages
 router.get("/new-messages", protectRoute, getNewMessages);

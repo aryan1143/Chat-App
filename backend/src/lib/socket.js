@@ -2,7 +2,7 @@ import { Server } from "socket.io";
 import http from "node:http";
 import express from "express";
 import { createClient } from "redis";
-import { updateMessageStatus } from "./utils.js";
+import { updateLastOnline, updateMessageStatus } from "./utils.js";
 
 const redisClient = createClient({
   url: process.env.REDIS_URL || "redis://127.0.0.1:6379",
@@ -65,13 +65,14 @@ io.on("connection", async (socket) => {
     if (remaining === 1) {
       await redisClient.del(`user:${userId}:sockets`);
       await redisClient.sRem("onlineUsers", userId);
+      const lastOnline = await updateLastOnline(userId);
 
       // notifing all friedns that this user is now offline
       for (const id of friendsIdList) {
         const friendSockets = await redisClient.sMembers(`user:${id}:sockets`);
 
         for (const sId of friendSockets) {
-          io.to(sId).emit("friendOffline", userId);
+          io.to(sId).emit("friendOffline", { userId, lastOnline });
         }
       }
     } else {

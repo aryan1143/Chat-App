@@ -22,7 +22,6 @@ function App() {
   } = useChatAndMessageStore();
   const { setInitialPrivacySetting } = useSettingStore();
 
-  console.log(authUser);
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);

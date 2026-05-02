@@ -30,6 +30,7 @@ function ChatArea() {
   const [isEditingMessage, setIsEditingMessage] = useState(false);
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [showUserInfo, setShowUserInfo] = useState(false);
+  const [showDeleteChatBtn, setShowDeleteChatBtn] = useState(false);
   const [activeMsg, setActiveMsg] = useState(null);
   const [scrolledTime, setScrolledTime] = useState(1);
   const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
@@ -39,7 +40,7 @@ function ChatArea() {
 
   const { authUser, socket } = useAuthStore();
 
-  const { friendsOnline } = useConnectionStore();
+  const { friendsOnline, friends } = useConnectionStore();
 
   const {
     getMessages,
@@ -51,6 +52,7 @@ function ChatArea() {
     isSelectedUserTyping,
     editMessage,
     deleteMessage,
+    deleteAllMessage,
   } = useChatAndMessageStore();
 
   //functions to handle long press on messages
@@ -76,6 +78,7 @@ function ChatArea() {
     const onBgClick = (e) => {
       e.stopPropagation();
       setActiveMsg(null);
+      setShowDeleteChatBtn(false);
     };
     window.addEventListener("click", onBgClick);
     return () => {
@@ -107,8 +110,6 @@ function ChatArea() {
       setScrolledTime((prev) => prev + 1);
     }
   };
-
-  const { friends } = useConnectionStore();
 
   const onFileChange = async (e) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -186,14 +187,14 @@ function ChatArea() {
   return (
     <div className="relative w-full h-full flex flex-col">
       {/* user profile data */}
-      <div className="w-full flex gap-2 items-center bg-base-100 p-4 py-2 border-b border-base-content/20">
+      <div className="relative w-full flex gap-2 items-center bg-base-100 p-4 py-2 border-b border-base-content/20">
         <button onClick={() => setSelectedUser(null)}>
           <ArrowLeft />
         </button>
         <button
           ref={profileOpenBtnRef}
           onClick={() => setShowUserInfo((prev) => !prev)}
-          className="flex items-center w-4/10 gap-1 truncate"
+          className="flex items-center w-7/10 gap-1 truncate"
         >
           <div className="shrink-0 relative">
             <img
@@ -207,13 +208,42 @@ function ChatArea() {
           <div className="flex flex-col w-full justify-start">
             <h2 className="truncate mr-auto">{selectedUserData.fullName}</h2>
             <p className="truncate mr-auto text-xs text-base-content/60">
-              {selectedUserData.bio}
+              {friendsOnline.includes(selectedUser)
+                ? selectedUserData.bio
+                : `Last online: ${formatMessageTimeForBubble(selectedUserData?.lastOnline)}`}
             </p>
           </div>
         </button>
-        <button className="ml-auto">
-          <EllipsisVertical />
-        </button>
+        <div className="ml-auto h-fit w-fit">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowDeleteChatBtn((prev) => !prev);
+            }}
+          >
+            <EllipsisVertical />
+          </button>
+          {showDeleteChatBtn && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (
+                  confirm(
+                    "Are you sure you want to delete chat with " +
+                      selectedUserData.fullName,
+                  )
+                ) {
+                  deleteAllMessage(selectedUser);
+                  setShowDeleteChatBtn(false);
+                }
+              }}
+              className="absolute top-8/10 right-2 z-40 bg-base-100 text-red-500 font-semibold border border-base-content/50 p-1.5 rounded-md flex shrink-0"
+            >
+              <Trash2 className="shrink-0" />
+              <p className="shrink-0">Delete Chat</p>
+            </button>
+          )}
+        </div>
       </div>
       {showUserInfo && (
         <ShowProfileBox

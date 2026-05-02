@@ -4,6 +4,7 @@ import imagekit from "../lib/imagekit.js";
 import { getSocketIds, io } from "../lib/socket.js";
 import Connections from "../models/connections.model.js";
 import { read } from "node:fs";
+import mongoose from "mongoose";
 
 //controller to get messages with a specific user
 export const getMessages = async (req, res) => {
@@ -190,6 +191,43 @@ export const deleteMessage = async (req, res) => {
     res.status(204);
   } catch (error) {
     console.log("Error in delete message message-controller:", error.message);
+    res.status(500).json({ message: "Internal server error!" });
+  }
+};
+
+//controller to delete all messages with specific user
+export const deleteAllMessage = async (req, res) => {
+  const otherUserId = req.params?.id;
+  const userId = req.user._id;
+
+  if (!otherUserId)
+    return res.status(400).json({ message: "user id is required to delete" });
+
+  try {
+    await Message.deleteMany({
+      $or: [
+        {
+          senderId: new mongoose.Types.ObjectId(otherUserId),
+          receiverId: new mongoose.Types.ObjectId(userId),
+        },
+        {
+          senderId: new mongoose.Types.ObjectId(userId),
+          receiverId: new mongoose.Types.ObjectId(otherUserId),
+        },
+      ],
+    });
+
+    const otherUserSocketIds = await getSocketIds(otherUserId.toString());
+    otherUserSocketIds.forEach((sId) => {
+      io.to(sId).emit("allMessageDeleted", userId);
+    });
+
+    res.status(204);
+  } catch (error) {
+    console.log(
+      "Error in delete all message message-controller:",
+      error.message,
+    );
     res.status(500).json({ message: "Internal server error!" });
   }
 };

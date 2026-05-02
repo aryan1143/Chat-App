@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import Message from "../models/message.model.js";
 import { getSocketIds, io } from "./socket.js";
+import User from "../models/user.model.js";
 
 //function to generate JWT of user obj
 export function generateJWT(userId, res) {
@@ -39,6 +40,19 @@ export async function updateMessageStatus(messageData) {
       io.to(sId).emit("receiverReceivedMessage", updatedMessage);
     });
     return updatedMessage;
+  } catch (error) {
+    throw new Error(error);
+  }
+}
+
+export async function updateLastOnline(userId) {
+  if (!userId) return;
+  try {
+    const now = Date.now();
+    await User.findByIdAndUpdate(userId, {
+      lastOnline: now,
+    });
+    return now;
   } catch (error) {
     throw new Error(error);
   }
