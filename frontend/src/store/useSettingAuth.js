@@ -87,38 +87,6 @@ export const useSettingStore = create((set, get) => ({
       }
 
       try {
-        // First, register and initialize service worker with Firebase config
-        if ("serviceWorker" in navigator) {
-          try {
-            const registration = await navigator.serviceWorker.register(
-              "/firebase-messaging-sw.js",
-              { scope: "/firebase-cloud-messaging-push-scope" },
-            );
-
-            // Wait a bit for service worker to be ready
-            await navigator.serviceWorker.ready;
-
-            // Send Firebase config to service worker
-            if (registration.active) {
-              registration.active.postMessage({
-                type: "FIREBASE_CONFIG",
-                config: {
-                  apiKey: import.meta.env.VITE_API_KEY,
-                  authDomain: import.meta.env.VITE_AUTH_DOMAIN,
-                  projectId: import.meta.env.VITE_PROJECT_ID,
-                  storageBucket: import.meta.env.VITE_STORAGE_BUCKET,
-                  messagingSenderId: import.meta.env.VITE_MESSAGING_SENDER_ID,
-                  appId: import.meta.env.VITE_APP_ID,
-                },
-              });
-            }
-
-            console.log("✅ Service worker registered");
-          } catch (error) {
-            console.error("⚠️ Service worker registration issue:", error);
-          }
-        }
-
         set({ notification: true });
         const token = await getToken(messaging, {
           vapidKey:

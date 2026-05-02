@@ -6,54 +6,35 @@ importScripts(
   "https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging-compat.js",
 );
 
-let messaging = null;
-let isInitialized = false;
-
-// Initialize Firebase with config passed from main thread
-const initializeFirebase = (config) => {
-  if (isInitialized || !config || !config.projectId) {
-    return;
-  }
-
-  try {
-    firebase.initializeApp(config);
-    messaging = firebase.messaging();
-    isInitialized = true;
-    console.log("✅ Firebase initialized in service worker");
-
-    // Set up background message handler
-    setupBackgroundMessageHandler();
-  } catch (error) {
-    console.error("❌ Failed to initialize Firebase:", error);
-    messaging = null;
-  }
+// Firebase Configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyDcAA6DHJTjXViSMt62q4ZJ5RvUU9gkiEs",
+  authDomain: "yappynow-8384c.firebaseapp.com",
+  projectId: "yappynow-8384c",
+  storageBucket: "yappynow-8384c.firebasestorage.app",
+  messagingSenderId: "1041335230862",
+  appId: "1:1041335230862:web:fccf9e59b8377ea64e04df",
 };
 
-// Setup background message handler
-const setupBackgroundMessageHandler = () => {
-  if (!messaging) return;
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
 
-  messaging.onBackgroundMessage((payload) => {
-    console.log("📨 Background message received:", payload);
+// Initialize messaging
+const messaging = firebase.messaging();
 
-    const title = payload.data?.title || "New Message";
-    const options = {
-      body: payload.data?.body || "",
-      icon: "/logo-256.png",
-      badge: "/badge-72.png",
-      tag: "chat-notification",
-    };
+// Handle background messages
+messaging.onBackgroundMessage((payload) => {
+  console.log("📨 Background message received:", payload);
 
-    self.registration.showNotification(title, options);
-  });
-};
+  const title = payload.data?.title || "New Message";
+  const options = {
+    body: payload.data?.body || "",
+    icon: "/logo-256.png",
+    badge: "/badge-72.png",
+    tag: "chat-notification",
+  };
 
-// Listen for config messages from main thread
-self.addEventListener("message", (event) => {
-  if (event.data && event.data.type === "FIREBASE_CONFIG") {
-    console.log("📩 Received Firebase config in service worker");
-    initializeFirebase(event.data.config);
-  }
+  self.registration.showNotification(title, options);
 });
 
 // Handle notification clicks
