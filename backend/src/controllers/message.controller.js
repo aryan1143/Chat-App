@@ -3,6 +3,7 @@ import Message from "../models/message.model.js";
 import imagekit from "../lib/imagekit.js";
 import { getSocketIds, io } from "../lib/socket.js";
 import Connections from "../models/connections.model.js";
+import { read } from "node:fs";
 
 //controller to get messages with a specific user
 export const getMessages = async (req, res) => {
@@ -26,12 +27,14 @@ export const getMessages = async (req, res) => {
 
     const messageUpdates = [];
 
+    const { readReceipt } = await User.findById(myId).select("readReceipt");
     for (const message of messages) {
+      if (message.status === "received" && !readReceipt) continue;
       if (message.status === "sent" || message.status === "received") {
         messageUpdates.push({
           updateOne: {
             filter: { _id: message._id, receiverId: myId },
-            update: { $set: { status: "seen" } },
+            update: { $set: { status: readReceipt ? "seen" : "received" } },
           },
         });
 
@@ -45,8 +48,8 @@ export const getMessages = async (req, res) => {
         }
       }
     }
-
-    if (messageUpdates.length > 0) {
+    if (messageUpdates.length !== 0) {
+      console.log(readReceipt);
       await Message.bulkWrite(messageUpdates);
     }
 

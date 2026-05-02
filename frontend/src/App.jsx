@@ -13,14 +13,25 @@ import { useChatAndMessageStore } from "./store/useChatAndMessageStore";
 import { useSettingStore } from "./store/useSettingAuth";
 
 function App() {
-  const { checkAuth, authUser, isCheckingAuth } = useAuthStore();
-  const { getNewMessages } = useChatAndMessageStore();
+  const { checkAuth, authUser, isCheckingAuth, socket } = useAuthStore();
+  const {
+    getNewMessages,
+    subscribeToMessages,
+    handleSelectedUserStartedTyping,
+    handleSelectedUserStoppedTyping,
+  } = useChatAndMessageStore();
   const { setInitialPrivacySetting } = useSettingStore();
 
   console.log(authUser);
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
+
+  useEffect(() => {
+    subscribeToMessages();
+    handleSelectedUserStartedTyping();
+    handleSelectedUserStoppedTyping();
+  }, [socket]);
 
   useEffect(() => {
     if (!authUser) return;

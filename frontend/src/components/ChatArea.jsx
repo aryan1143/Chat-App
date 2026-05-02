@@ -48,9 +48,6 @@ function ChatArea() {
     isGettingMessages,
     messages,
     sendMessage,
-    subscribeToMessages,
-    handleSelectedUserStartedTyping,
-    handleSelectedUserStoppedTyping,
     isSelectedUserTyping,
     editMessage,
     deleteMessage,
@@ -87,12 +84,6 @@ function ChatArea() {
   }, []);
 
   const handleTyping = useTypingStatus(selectedUser, authUser._id);
-
-  useEffect(() => {
-    subscribeToMessages();
-    handleSelectedUserStartedTyping();
-    handleSelectedUserStoppedTyping();
-  }, [socket]);
 
   useEffect(() => {
     if (!messageAreaRef.current || !messages?.length || scrolledTime) return;
@@ -362,7 +353,7 @@ function ChatArea() {
                       )}
                       <span className="w-full flex h-fit">
                         <p className="px-1">{message.text}</p>
-                        <p className="text-xs mt-auto ml-auto text-base-content/50">
+                        <p className="text-xs mt-auto ml-auto text-base-content/50 shrink-0">
                           {formatMessageTimeForBubble(message?.createdAt)}
                         </p>
                         {message.status === "sent" && (

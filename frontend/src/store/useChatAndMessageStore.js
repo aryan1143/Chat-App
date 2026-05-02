@@ -3,6 +3,7 @@ import { axiosInstance } from "../lib/axios";
 import { toast } from "react-hot-toast";
 import { useAuthStore } from "./useAuthStore";
 import { uid } from "uid";
+import { useSettingStore } from "./useSettingAuth";
 
 export const useChatAndMessageStore = create((set, get) => ({
   messages: [],
@@ -168,11 +169,15 @@ export const useChatAndMessageStore = create((set, get) => ({
       //handeling received new message
       socket.on("newMessageReceived", (newMessage) => {
         const selectedUserId = get().selectedUser;
+        const readReceipt = useSettingStore.getState()?.readReceipt;
 
         socket.emit("messageReceived", {
           _id: newMessage._id,
           clientMsgId: newMessage.clientMsgId,
-          status: selectedUserId === newMessage.senderId ? "seen" : "received",
+          status:
+            selectedUserId === newMessage.senderId && readReceipt
+              ? "seen"
+              : "received",
           receivedAt: Date.now(),
         });
 
@@ -235,11 +240,15 @@ export const useChatAndMessageStore = create((set, get) => ({
       //handeling message edited by sender
       socket.on("messageEdited", (updatedMessage) => {
         const selectedUserId = get().selectedUser;
+        const readReceipt = useSettingStore.getState()?.readReceipt;
+
         socket.emit("messageReceived", {
           _id: updatedMessage._id,
           clientMsgId: updatedMessage.clientMsgId,
           status:
-            selectedUserId === updatedMessage.senderId ? "seen" : "received",
+            selectedUserId === updatedMessage.senderId && readReceipt
+              ? "seen"
+              : "received",
           receivedAt: Date.now(),
         });
         if (selectedUserId === updatedMessage.senderId) {
