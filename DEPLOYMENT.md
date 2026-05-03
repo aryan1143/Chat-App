@@ -7,7 +7,8 @@
 ```
 PORT=3001
 MONGODB_URI=your_mongodb_connection_string
-REDIS_URL=your_redis_connection_string
+REDIS_URL=your_redis_cloud_connection_string
+REDIS_TLS=false
 CLIENT_URL=https://your-frontend-domain.com
 GCP_PROJECT_ID=your_gcp_project_id
 GCP_PRIVATE_KEY_ID=xxx
@@ -45,7 +46,8 @@ VITE_MEASUREMENT_ID=xxx
 
 - [ ] Verify `.env` file contains all required variables
 - [ ] Test MongoDB connection: `MONGODB_URI` is valid
-- [ ] Test Redis connection: `REDIS_URL` is valid
+- [ ] Test Redis Cloud connection: `REDIS_URL` is valid
+- [ ] If your Redis Cloud database requires TLS, set `REDIS_TLS=true`
 - [ ] Verify `CLIENT_URL` matches your frontend domain
 - [ ] Test Firebase Admin SDK credentials are correct
 - [ ] Test ImageKit credentials

@@ -1,24 +1,34 @@
 import { Server } from "socket.io";
 import http from "node:http";
 import express from "express";
-import { updateLastOnline, updateMessageStatus } from "./utils.js";
-import Redis from "ioredis";
 import { config } from "dotenv";
+import { createClient } from "redis";
+import { updateLastOnline, updateMessageStatus } from "./utils.js";
 
 config();
 
-const redisClient = new Redis(process.env.REDIS_URL, {
-  tls: {},
-  family: 4,
-});
+const redisUrl =
+  process.env.REDIS_HOST && process.env.REDIS_PORT
+    ? `${(process.env.REDIS_TLS || "false").toLowerCase() === "true" ? "rediss" : "redis"}://${encodeURIComponent(process.env.REDIS_USERNAME || "default")}:${encodeURIComponent(process.env.REDIS_PASSWORD || "")}@${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`
+    : process.env.REDIS_URL;
 
-redisClient.on("connect", () => {
-  console.log("✅ Redis connected");
+if (!redisUrl) {
+  throw new Error("REDIS_URL or REDIS_HOST/REDIS_PORT must be configured");
+}
+
+const redisClient = createClient({
+  url: redisUrl,
+  socket: {
+    family: 4,
+  },
 });
 
 redisClient.on("error", (err) => {
   console.log("❌ Redis Error:", err);
 });
+
+await redisClient.connect();
+console.log("✅ Redis connected");
 
 const app = express();
 const server = http.createServer(app);
@@ -29,14 +39,12 @@ const io = new Server(server, {
   },
 });
 
-// helper to getSocketIds
 export async function getSocketIds(userId) {
-  return await redisClient.smembers(`user:${userId}:sockets`);
+  return await redisClient.sMembers(`user:${userId}:sockets`);
 }
 
-// helper to check if user is online
 export async function isOnline(userId) {
-  return await redisClient.sismember("onlineUsers", userId);
+  return await redisClient.sIsMember("onlineUsers", userId);
 }
 
 io.on("connection", async (socket) => {
@@ -52,20 +60,17 @@ io.on("connection", async (socket) => {
     return;
   }
 
-  // storing user ids and socket ids
-  await redisClient.sadd(`user:${userId}:sockets`, socket.id);
-  await redisClient.sadd("onlineUsers", userId);
+  await redisClient.sAdd(`user:${userId}:sockets`, socket.id);
+  await redisClient.sAdd("onlineUsers", userId);
   await redisClient.set(`socket:${socket.id}`, userId);
 
-  // getting all online friends of user
-  const onlineUsers = new Set(await redisClient.smembers("onlineUsers"));
+  const onlineUsers = new Set(await redisClient.sMembers("onlineUsers"));
   const onlineFriends = friendsIdList.filter((id) => onlineUsers.has(id));
 
   socket.emit("getOnlineFriends", onlineFriends);
 
-  // notifying all friends that user is online
   for (const id of friendsIdList) {
-    const friendSockets = await redisClient.smembers(`user:${id}:sockets`);
+    const friendSockets = await redisClient.sMembers(`user:${id}:sockets`);
 
     for (const sId of friendSockets) {
       io.to(sId).emit("friendOnline", userId);
@@ -73,37 +78,29 @@ io.on("connection", async (socket) => {
   }
 
   socket.on("disconnect", async () => {
-    const remaining = await redisClient.scard(`user:${userId}:sockets`);
+    const remaining = await redisClient.sCard(`user:${userId}:sockets`);
     if (remaining === 1) {
       await redisClient.del(`user:${userId}:sockets`);
       await redisClient.del(`socket:${socket.id}`);
-      await redisClient.srem("onlineUsers", userId);
+      await redisClient.sRem("onlineUsers", userId);
 
-      if (userId) {
-        const lastOnline = await updateLastOnline(userId);
+      const lastOnline = await updateLastOnline(userId);
 
-        // notifing all friedns that this user is now offline
-        for (const id of friendsIdList) {
-          const friendSockets = await redisClient.smembers(
-            `user:${id}:sockets`,
-          );
+      for (const id of friendsIdList) {
+        const friendSockets = await redisClient.sMembers(`user:${id}:sockets`);
 
-          for (const sId of friendSockets) {
-            io.to(sId).emit("friendOffline", { userId, lastOnline });
-          }
+        for (const sId of friendSockets) {
+          io.to(sId).emit("friendOffline", { userId, lastOnline });
         }
-      } else {
-        console.warn("⚠️ User disconnected but userId is undefined");
       }
     } else {
-      //removing the socket of user
-      await redisClient.srem(`user:${userId}:sockets`, socket.id);
+      await redisClient.sRem(`user:${userId}:sockets`, socket.id);
       await redisClient.del(`socket:${socket.id}`);
     }
   });
 
   socket.on("typing", async (query) => {
-    const receiverSockets = await redisClient.smembers(
+    const receiverSockets = await redisClient.sMembers(
       `user:${query.to}:sockets`,
     );
     receiverSockets.forEach((sId) => {
@@ -112,7 +109,7 @@ io.on("connection", async (socket) => {
   });
 
   socket.on("stopTyping", async (query) => {
-    const receiverSockets = await redisClient.smembers(
+    const receiverSockets = await redisClient.sMembers(
       `user:${query.to}:sockets`,
     );
     receiverSockets.forEach((sId) => {
@@ -122,7 +119,7 @@ io.on("connection", async (socket) => {
 
   socket.on("messageReceived", async (query) => {
     try {
-      const updatedMessage = await updateMessageStatus(query);
+      await updateMessageStatus(query);
     } catch (error) {
       console.log("Error in socket message received: ", error);
     }

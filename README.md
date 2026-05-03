@@ -22,7 +22,7 @@ Yappy Talk is a full-featured chat app where you can:
 
 - **Node.js + Express** - Fast and scalable server
 - **MongoDB** - Store all your messages, users, and connections
-- **Redis** - Keep track of who's online in real-time (we use Upstash)
+- **Redis** - Keep track of who's online in real-time (Redis Cloud)
 - **Socket.io** - Real-time bidirectional communication
 - **Firebase Admin SDK** - Send push notifications
 - **ImageKit** - Image optimization and hosting
@@ -91,7 +91,7 @@ Make sure you have:
 
 - **Node.js** (v18 or higher)
 - **MongoDB** (local or cloud Atlas)
-- **Redis** (local or Upstash cloud)
+- **Redis** (local or Redis Cloud)
 - **Firebase Project** (for notifications)
 - **ImageKit Account** (for image hosting)
 - **npm** or **yarn**
@@ -115,8 +115,9 @@ CLIENT_URL=http://localhost:5173
 # Database
 MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/chat-app
 
-# Redis (we used Upstash)
-REDIS_URL=redis://:password@host:port
+# Redis Cloud
+REDIS_URL=redis://default:password@host:port
+REDIS_TLS=false
 
 # Firebase Admin SDK (get this from Firebase Console)
 GCP_PROJECT_ID=your-project-id
@@ -281,7 +282,7 @@ Check out `DEPLOYMENT.md` for step-by-step deployment instructions to Heroku, Ra
 1. Set all environment variables on your hosting platform
 2. Build the frontend: `npm run build`
 3. Backend should serve the frontend's `dist` folder
-4. Use production-grade MongoDB (Atlas) and Redis (Upstash)
+4. Use production-grade MongoDB (Atlas) and Redis Cloud
 5. Set `CLIENT_URL` to your actual frontend domain
 6. Make sure CORS is configured correctly
 
@@ -312,8 +313,9 @@ npm run lint
 
 **"Redis connection refused"**
 
-- If using Upstash, verify the URL includes TLS settings
-- Redis needs `tls: {}` option in production
+- Verify the Redis Cloud URL is correct and matches your database protocol
+- If you see `ERR_SSL_WRONG_VERSION_NUMBER`, set `REDIS_TLS=false`
+- If your database requires TLS, set `REDIS_TLS=true`
 
 **"Firebase notifications not working"**
 
