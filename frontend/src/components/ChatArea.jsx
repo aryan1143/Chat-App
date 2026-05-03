@@ -145,7 +145,7 @@ function ChatArea({ setIsSearchingFriends }) {
           <div className="p-1 bubble">
             <img src="./logo-256.png" className="size-28" />
           </div>
-          <h1 className="text-2xl font-bold mt-2">Welcome to Yappy Talk</h1>
+          <h1 className="text-2xl font-bold mt-2">Welcome to Yappy Now</h1>
           <p className="text-base-content/60 max-w-sm">
             Select a conversation from the sidebar to start chatting
           </p>

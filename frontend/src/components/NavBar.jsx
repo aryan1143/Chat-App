@@ -20,7 +20,7 @@ function NavBar() {
           {pathname !== "/profile" && pathname !== "/setting" ? (
             <>
               <img src="./logo-256.png" className="size-10" />
-              <span>Yappy Talk</span>
+              <span>Yappy Now</span>
             </>
           ) : (
             <>
