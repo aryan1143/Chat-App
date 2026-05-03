@@ -46,7 +46,7 @@ function App() {
 
   if (isCheckingAuth && !authUser) {
     return (
-      <div className="h-dvh w-dvw flex justify-center items-center bg-base-100 text-base-content">
+      <div className="h-svh w-dvw flex justify-center items-center bg-base-100 text-base-content">
         <span className="loading loading-bars loading-xl"></span>
       </div>
     );
