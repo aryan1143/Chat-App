@@ -44,8 +44,8 @@ export const useSettingStore = create((set, get) => ({
   notification: getInitialNotification(),
 
   //privacy settings
-  lastSeenAndOnline: false,
-  readReceipt: false,
+  lastSeenAndOnline: true,
+  readReceipt: true,
 
   isGettingNotificationPermission: false,
 
