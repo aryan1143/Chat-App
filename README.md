@@ -1,10 +1,10 @@
-# Yappy Now - Real-Time Chat Application
+# Yappy Talk - Real-Time Chat Application
 
 A modern chat application built with React and Node.js that lets you connect with friends in real-time. Message instantly, see when your friends are online, and get notified of new conversations.
 
 ## What's This All About?
 
-Yappy Now is a full-featured chat app where you can:
+Yappy Talk is a full-featured chat app where you can:
 
 - **Message friends** - Send and receive messages instantly with real-time updates
 - **See online status** - Know exactly when your friends are online or when they were last active
