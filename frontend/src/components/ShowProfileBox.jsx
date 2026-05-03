@@ -31,11 +31,7 @@ function ShowProfileBox({ userData, setShowUserInfo, btnRef }) {
             <X className="stroke-3"/>
           </button>
         </div>
-        <div className="absolute w-full bottom-0 left-0 bg-base-content/10 backdrop-blur-[2px]">
-          <p className="p-0.5 font-semibold text-sm truncate">
-            {userData.email}
-          </p>
-        </div>
+
         <img src={userData.profilePic} className="w-full m-auto" />
       </div>
       <div className="w-full flex p-1 px-2 border-t border-base-content/50 items-center gap-1">

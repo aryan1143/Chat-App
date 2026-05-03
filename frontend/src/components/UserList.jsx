@@ -246,7 +246,6 @@ function UserList({ setIsSearchingFriends }) {
                 <p className="text-base font-semibold truncate">
                   {user.fullName}
                 </p>
-                <p className="text-sm text-base-content/70">{user?.email}</p>
               </div>
               <div className="ml-auto mr-2 flex items-center gap-1">
                 <button

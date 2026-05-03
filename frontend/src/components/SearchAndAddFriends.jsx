@@ -58,7 +58,6 @@ function SearchAndAddFriends({ setIsSearchingFriends }) {
                 <p className="text-base font-semibold truncate">
                   {user.fullName}
                 </p>
-                <p className="text-sm text-base-content/70">{user?.email}</p>
               </div>
               {user.connectionStatus === "none" && (
                 <button
