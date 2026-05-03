@@ -78,15 +78,22 @@ io.on("connection", async (socket) => {
       await redisClient.del(`user:${userId}:sockets`);
       await redisClient.del(`socket:${socket.id}`);
       await redisClient.srem("onlineUsers", userId);
-      const lastOnline = await updateLastOnline(userId);
 
-      // notifing all friedns that this user is now offline
-      for (const id of friendsIdList) {
-        const friendSockets = await redisClient.smembers(`user:${id}:sockets`);
+      if (userId) {
+        const lastOnline = await updateLastOnline(userId);
 
-        for (const sId of friendSockets) {
-          io.to(sId).emit("friendOffline", { userId, lastOnline });
+        // notifing all friedns that this user is now offline
+        for (const id of friendsIdList) {
+          const friendSockets = await redisClient.smembers(
+            `user:${id}:sockets`,
+          );
+
+          for (const sId of friendSockets) {
+            io.to(sId).emit("friendOffline", { userId, lastOnline });
+          }
         }
+      } else {
+        console.warn("⚠️ User disconnected but userId is undefined");
       }
     } else {
       //removing the socket of user

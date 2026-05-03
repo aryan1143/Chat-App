@@ -99,7 +99,7 @@ export const useAuthStore = create((set, get) => ({
   //function to connect to the socket.io
   connectSocket: async () => {
     const { authUser } = get();
-    if (!authUser || get().socket?.connected) return;
+    if (!authUser || !authUser._id || get().socket?.connected) return;
 
     const friendsList = useConnectionStore.getState().friends;
     const friendsIdList = friendsList.map((user) => user._id);

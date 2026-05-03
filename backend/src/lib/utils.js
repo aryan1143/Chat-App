@@ -47,7 +47,10 @@ export async function updateMessageStatus(messageData) {
 }
 
 export async function updateLastOnline(userId) {
-  if (!userId) return;
+  if (!userId) {
+    console.warn("⚠️ updateLastOnline called with undefined userId");
+    return;
+  }
   try {
     const now = Date.now();
     await User.findByIdAndUpdate(userId, {
@@ -55,6 +58,7 @@ export async function updateLastOnline(userId) {
     });
     return now;
   } catch (error) {
+    console.error("❌ Error updating lastOnline for user:", userId, error);
     throw new Error(error);
   }
 }
