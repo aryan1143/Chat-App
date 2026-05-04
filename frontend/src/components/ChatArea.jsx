@@ -22,6 +22,7 @@ import MessageBubbleSkeleton from "./MessageBubbleSkeleton";
 import ShowProfileBox from "./ShowProfileBox";
 import handleUserTypingStatus from "../lib/handleUserTypingStatus";
 import useTypingStatus from "../lib/handleUserTypingStatus";
+import ImageView from "./ImageView";
 
 function ChatArea({ setIsSearchingFriends }) {
   const [textMessage, setTextMessage] = useState("");
@@ -30,6 +31,8 @@ function ChatArea({ setIsSearchingFriends }) {
   const [isEditingMessage, setIsEditingMessage] = useState(false);
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [showUserInfo, setShowUserInfo] = useState(false);
+  const [isVeiwingImage, setIsVeiwingImage] = useState(false);
+  const [viewingImageSrc, setVeiwingImageSrc] = useState(null);
   const [showDeleteChatBtn, setShowDeleteChatBtn] = useState(false);
   const [activeMsg, setActiveMsg] = useState(null);
   const [scrolledTime, setScrolledTime] = useState(1);
@@ -137,6 +140,15 @@ function ChatArea({ setIsSearchingFriends }) {
     const userData = friends.find((user) => user._id === selectedUser);
     if (userData) setSelectedUserData(userData);
   }, [friends, selectedUser]);
+
+  if (isVeiwingImage && viewingImageSrc) {
+    return (
+      <ImageView
+        imageSrc={viewingImageSrc}
+        setIsVeiwingImage={setIsVeiwingImage}
+      />
+    );
+  }
 
   if (!selectedUser) {
     return (
@@ -332,7 +344,11 @@ function ChatArea({ setIsSearchingFriends }) {
                     <div className="p-1 w-fit rounded-md rounded-bl-xs bg-base-300 wrap-anywhere mr-5 lg:mr-10">
                       {message?.image && (
                         <img
-                          className="w-50 lg:w-80 rounded-sm"
+                          onClick={() => {
+                            setIsVeiwingImage(true);
+                            setVeiwingImageSrc(message?.image);
+                          }}
+                          className="w-50 lg:w-80 rounded-sm cursor-pointer"
                           src={message.image}
                         />
                       )}
@@ -402,7 +418,14 @@ function ChatArea({ setIsSearchingFriends }) {
                     <div className="p-1 w-fit rounded-br-xs rounded-md bg-base-300 wrap-anywhere ml-5 lg:ml-10">
                       {message?.image && (
                         <div className="w-50 lg:w-70 relative rounded-sm overflow-hidden">
-                          <img className="w-full" src={message.image} />
+                          <img
+                            onClick={() => {
+                              setIsVeiwingImage(true);
+                              setVeiwingImageSrc(message?.image);
+                            }}
+                            className="w-full cursor-pointer"
+                            src={message.image}
+                          />
                           {!message?.createdAt && (
                             <div className="absolute top-0 left-0 w-full h-full bg-base-300/20 backdrop-blur-sm flex justify-center items-center">
                               <span className="loading loading-infinity loading-xl stroke-3 w-15"></span>
