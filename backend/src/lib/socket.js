@@ -24,11 +24,10 @@ const redisClient = createClient({
 });
 
 redisClient.on("error", (err) => {
-  console.log("❌ Redis Error:", err);
+  console.error("❌ Redis Error:", err);
 });
 
 await redisClient.connect();
-console.log("✅ Redis connected");
 
 const app = express();
 const server = http.createServer(app);

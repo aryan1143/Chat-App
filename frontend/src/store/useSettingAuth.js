@@ -124,7 +124,6 @@ export const useSettingStore = create((set, get) => ({
     const { lastSeenAndOnline, readReceipt } = get();
     try {
       set({ ...value });
-      console.log(value);
       await axiosInstance.put("/auth/update-privacy", value);
       toast.success("Setting updated successfully");
     } catch (error) {

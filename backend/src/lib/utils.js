@@ -78,7 +78,6 @@ export const sendPushNotification = async (
       data: { type: "chat", title: senderName, body: messageText },
     };
     const response = await admin.messaging().send(message);
-    console.log("Notification sent:", response);
   } catch (error) {
     console.error("Error sending notification:", error);
   }

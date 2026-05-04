@@ -55,7 +55,6 @@ export const getMessages = async (req, res) => {
       }
     }
     if (messageUpdates.length !== 0) {
-      console.log(readReceipt);
       await Message.bulkWrite(messageUpdates);
     }
 
@@ -142,7 +141,6 @@ export const sendMessage = async (req, res) => {
           const notificationMessage = [text, image && "📷 Image"]
             .filter(Boolean)
             .join(" ");
-          console.log("Sending notification to:", receiverId);
           await sendPushNotification(
             fcmToken,
             req.user.fullName,
@@ -158,7 +156,6 @@ export const sendMessage = async (req, res) => {
     const senderSocketIds = await getSocketIds(myId.toString());
     if (senderSocketIds?.length >= 1) {
       senderSocketIds.forEach((socketId) => {
-        console.log(newMessageForResponse);
         io.to(socketId).emit("newMessageSent", newMessageForResponse);
       });
     }

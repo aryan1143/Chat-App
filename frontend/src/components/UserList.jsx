@@ -53,7 +53,6 @@ function UserList({ setIsSearchingFriends }) {
 
   const handleLongPress = (id) => {
     setActiveUserId(id);
-    console.log(id);
   };
 
   useEffect(() => {

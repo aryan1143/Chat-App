@@ -34,7 +34,6 @@ app.use("/api/connection", connectionRoutes);
 
 //starting the server-----------
 server.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
   //calling fn to connect to DB
   connectDB();
 });

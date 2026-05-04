@@ -113,7 +113,6 @@ function ChatArea({ setIsSearchingFriends }) {
     const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
     if (scrollHeight + scrollTop - clientHeight < 5) {
       getMessages(selectedUser, scrolledTime);
-      console.log(scrolledTime);
       setScrolledTime((prev) => prev + 1);
     }
   };
@@ -144,8 +143,6 @@ function ChatArea({ setIsSearchingFriends }) {
     setRepliedTo(null);
     setRepliedToMessage(null);
   };
-
-  console.log(messages);
 
   useEffect(() => {
     if (friends.length === 0) return;

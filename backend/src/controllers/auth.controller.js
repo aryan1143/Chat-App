@@ -217,7 +217,6 @@ export const updatePrivacy = async (req, res) => {
       typeof lastSeenAndOnline !== "boolean" &&
       typeof readReceipt !== "boolean"
     ) {
-      console.log(lastSeenAndOnline, readReceipt);
       return res
         .status(400)
         .json({ message: "Privacy data is required to update" });
