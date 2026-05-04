@@ -341,12 +341,12 @@ function ChatArea({ setIsSearchingFriends }) {
                 {message?.repliedTo && (
                   <div
                     key={`${message._id}repliedTo`}
-                    className="ml-8 -mb-2 mt-2 opacity-60 message mr-auto flex gap-1 w-fit h-fit text-2sm"
+                    className="ml-8 -mb-1 mt-2 opacity-60 message mr-auto flex gap-1 w-fit h-fit text-2sm"
                   >
-                    <p className="mr-auto text-sm">
-                      {selectedUserData.fullName} replied
-                    </p>
                     <div className="flex flex-col">
+                      <p className="mr-auto text-xs">
+                        {selectedUserData.fullName} replied
+                      </p>
                       <div className="relative flex justify-start">
                         <div className="p-1 w-fit rounded-md rounded-bl-xs bg-base-300 wrap-anywhere mr-5 lg:mr-10">
                           {message.repliedTo?.image && (
@@ -421,10 +421,10 @@ function ChatArea({ setIsSearchingFriends }) {
                 {message?.repliedTo && (
                   <div
                     key={`${message._id}repliedTo`}
-                    className="mr-10 -mb-2 mt-2 opacity-60 message ml-auto flex gap-1 w-fit h-fit text-2sm"
+                    className="mr-10 -mb-1 mt-2 opacity-60 message ml-auto flex gap-1 w-fit h-fit text-2sm"
                   >
                     <div className="flex flex-col">
-                      <p className="ml-auto text-sm">You replied</p>
+                      <p className="ml-auto text-xs">You replied</p>
                       <div className="relative flex justify-end">
                         <div className="p-1 w-fit rounded-md rounded-br-xs bg-base-300 wrap-anywhere ml-5 lg:ml-10">
                           {message.repliedTo?.image && (

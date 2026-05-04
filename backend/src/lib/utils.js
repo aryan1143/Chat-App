@@ -34,7 +34,10 @@ export async function updateMessageStatus(messageData) {
         seenAt: seenAt || null,
       },
       { returnDocument: "after" },
-    );
+    ).populate({
+      path: "repliedTo",
+      select: "text image",
+    });
     const { senderId } = updatedMessage;
     const senderSocketIds = await getSocketIds(senderId);
     senderSocketIds.forEach((sId) => {
