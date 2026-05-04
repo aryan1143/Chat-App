@@ -4,8 +4,10 @@ import {
   CheckCheck,
   CirclePlus,
   EllipsisVertical,
+  Forward,
   MessageSquare,
   Plus,
+  Reply,
   SendHorizontal,
   SquarePen,
   Timer,
@@ -35,6 +37,8 @@ function ChatArea({ setIsSearchingFriends }) {
   const [viewingImageSrc, setVeiwingImageSrc] = useState(null);
   const [showDeleteChatBtn, setShowDeleteChatBtn] = useState(false);
   const [activeMsg, setActiveMsg] = useState(null);
+  const [repliedTo, setRepliedTo] = useState(null);
+  const [repliedToMessage, setRepliedToMessage] = useState({});
   const [scrolledTime, setScrolledTime] = useState(1);
   const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
   const profileOpenBtnRef = useRef(null);
@@ -129,11 +133,19 @@ function ChatArea({ setIsSearchingFriends }) {
       setIsEditingMessage(false);
       setEditingMessageId(null);
     } else {
-      sendMessage(selectedUser, { text: textMessage, image: imageSrc });
+      sendMessage(selectedUser, {
+        text: textMessage,
+        image: imageSrc,
+        repliedTo,
+      });
     }
     setTextMessage("");
     setImageSrc(null);
+    setRepliedTo(null);
+    setRepliedToMessage(null);
   };
+
+  console.log(messages);
 
   useEffect(() => {
     if (friends.length === 0) return;
@@ -279,7 +291,7 @@ function ChatArea({ setIsSearchingFriends }) {
         onScroll={handleOnscroll}
         className="relative flex flex-col-reverse w-full p-4 flex-1 overflow-y-scroll scrollbar-thumb-base-content/60 ky-700 scrollbar-track-base-content/20 scrollbar-thin [&::-webkit-scrollbar-button]:hidden"
       >
-        {!messages?.length && !isGettingMessages && (
+        {messages?.length == 0 && !isGettingMessages && (
           <div className="flex min-h-full w-full items-center justify-center py-10 text-center">
             <div className="max-w-sm rounded-3xl border border-base-content/10 bg-base-100/80 px-6 py-8 shadow-sm backdrop-blur-sm">
               <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-primary/15 text-primary">
@@ -325,141 +337,215 @@ function ChatArea({ setIsSearchingFriends }) {
         {messages &&
           messages.toReversed().map((message) => {
             return message.receiverId === authUser._id ? (
-              <div
-                key={message.clientMsgId}
-                className="message mr-auto flex gap-1 w-fit h-fit my-1 lg:my-2 text-2sm"
-              >
-                <div className="h-full w-8 lg:w-10 flex items-end shrink-0">
-                  <img
-                    src={selectedUserData.profilePic}
-                    className="size-8 lg:size-10 rounded-full"
-                  />
-                </div>
-                <div className="flex flex-col">
-                  <p className="text-xs ml-2">
-                    {formatMessageTime(message.createdAt)}
-                  </p>
-                  <div className="flex justify-start">
-                    <span className="mt-auto rounded-t-sm rounded-r-sm -mr-1 inline-block w-0 h-0 border-solid border-t-0 border-r-0 border-l-10 border-b-10 border-l-transparent border-r-transparent border-t-transparent border-b-base-300"></span>
-                    <div className="p-1 w-fit rounded-md rounded-bl-xs bg-base-300 wrap-anywhere mr-5 lg:mr-10">
-                      {message?.image && (
-                        <img
-                          onClick={() => {
-                            setIsVeiwingImage(true);
-                            setVeiwingImageSrc(message?.image);
-                          }}
-                          className="w-50 lg:w-80 rounded-sm cursor-pointer"
-                          src={message.image}
-                        />
-                      )}
-                      <span className="w-full flex h-fit">
-                        <p className="px-1">{message.text}</p>
-                        <p className="text-xs mt-auto ml-auto text-base-content/50">
-                          {formatMessageTimeForBubble(message?.createdAt)}
-                        </p>
-                      </span>
+              <div key={message.clientMsgId}>
+                {message?.repliedTo && (
+                  <div
+                    key={`${message._id}repliedTo`}
+                    className="ml-8 -mb-2 mt-2 opacity-60 message mr-auto flex gap-1 w-fit h-fit text-2sm"
+                  >
+                    <p className="mr-auto text-sm">
+                      {selectedUserData.fullName} replied
+                    </p>
+                    <div className="flex flex-col">
+                      <div className="relative flex justify-start">
+                        <div className="p-1 w-fit rounded-md rounded-bl-xs bg-base-300 wrap-anywhere mr-5 lg:mr-10">
+                          {message.repliedTo?.image && (
+                            <img
+                              className="w-30 lg:w-50 rounded-sm"
+                              src={repliedTo.image}
+                            />
+                          )}
+                          <span className="w-full flex h-fit">
+                            <p className="px-1">{message.repliedTo.text}</p>
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            ) : (
-              <div
-                key={message.clientMsgId}
-                className="message relative ml-auto flex gap-1 w-fit h-fit my-1 lg:my-2 text-2sm"
-                onMouseDown={(e) => {
-                  e.stopPropagation();
-                  handleTouchStart(message._id);
-                }}
-                onMouseUp={handleTouchEnd}
-                onTouchStart={(e) => {
-                  e.stopPropagation();
-                  handleTouchStart(message._id);
-                }}
-                onTouchEnd={handleTouchEnd}
-              >
-                {activeMsg === message._id && (
-                  <span className="absolute flex gap-4 -bottom-5 -left-2 lg:left-10 z-25 rounded-full bg-base-200 p-1.5 px-4 border border-base-content/50">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setIsEditingMessage(true);
-                        setEditingMessageId(activeMsg);
-                        setTextMessage(message?.text || "");
-                      }}
-                      className="flex flex-col justify-center items-center"
-                    >
-                      <SquarePen className="size-6" />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteMessage(message._id, selectedUser);
-                      }}
-                      className="flex flex-col justify-center items-center"
-                    >
-                      <Trash2 className="size-6 text-red-500" />
-                    </button>
-                  </span>
                 )}
-                <div className="relative flex flex-col">
-                  <p className="text-xs ml-auto mr-2">
-                    {formatMessageTime(message.createdAt)}
-                  </p>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setActiveMsg(message._id);
-                    }}
-                    className="hidden opacity-30 absolute mt-2 rounded-full hover:bg-base-300 size-6 hover:opacity-100 md:flex justify-center items-center top-[50%] lg:left-2 -translate-y-1/2 mb-auto ml-auto"
-                  >
-                    <EllipsisVertical className="size-3.5" />
-                  </button>
-                  <div className="flex justify-end">
-                    <div className="p-1 w-fit rounded-br-xs rounded-md bg-base-300 wrap-anywhere ml-5 lg:ml-10">
-                      {message?.image && (
-                        <div className="w-50 lg:w-70 relative rounded-sm overflow-hidden">
+
+                <div
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                  }}
+                  className="message mr-auto flex gap-1 w-fit h-fit my-1 lg:my-2 text-2sm"
+                >
+                  <div className="h-full w-8 lg:w-10 flex items-end shrink-0">
+                    <img
+                      src={selectedUserData.profilePic}
+                      className="size-8 lg:size-10 rounded-full"
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <p className="text-xs ml-2">
+                      {formatMessageTime(message.createdAt)}
+                    </p>
+                    <div className="relative flex justify-start">
+                      <button
+                        onClick={(e) => {
+                          setRepliedTo(message._id);
+                          setRepliedToMessage({
+                            text: message?.text,
+                            image: message?.image,
+                          });
+                        }}
+                        className="opacity-70 absolute p-1 rounded-full hover:bg-base-300 hover:opacity-100 flex justify-center items-center top-[50%] -right-2 lg:right-2 -translate-y-1/2 mb-auto ml-auto"
+                      >
+                        <Reply className="size-5" />
+                      </button>
+                      <span className="mt-auto rounded-t-sm rounded-r-sm -mr-1 inline-block w-0 h-0 border-solid border-t-0 border-r-0 border-l-10 border-b-10 border-l-transparent border-r-transparent border-t-transparent border-b-base-300"></span>
+                      <div className="p-1 w-fit rounded-md rounded-bl-xs bg-base-300 wrap-anywhere mr-5 lg:mr-10">
+                        {message?.image && (
                           <img
                             onClick={() => {
                               setIsVeiwingImage(true);
                               setVeiwingImageSrc(message?.image);
                             }}
-                            className="w-full cursor-pointer"
+                            className="w-50 lg:w-80 rounded-sm cursor-pointer"
                             src={message.image}
                           />
-                          {!message?.createdAt && (
-                            <div className="absolute top-0 left-0 w-full h-full bg-base-300/20 backdrop-blur-sm flex justify-center items-center">
-                              <span className="loading loading-infinity loading-xl stroke-3 w-15"></span>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      <span className="w-full flex h-fit">
-                        <p className="px-1">{message.text}</p>
-                        <p className="text-xs mt-auto ml-auto text-base-content/50 shrink-0">
-                          {formatMessageTimeForBubble(message?.createdAt)}
-                        </p>
-                        {message.status === "sent" && (
-                          <Check className="ml-1 size-3 lg:size-3.5 mt-auto opacity-60 stroke-3 shrink-0" />
                         )}
-                        {message.status === "received" && (
-                          <CheckCheck className="ml-1 size-3 lg:size-3.5 mt-auto opacity-60 stroke-3 shrink-0" />
-                        )}
-                        {message.status === "seen" && (
-                          <CheckCheck className="ml-1 size-3 lg:size-3.5 mt-auto opacity-80 text-[#468aff] stroke-3 shrink-0" />
-                        )}
-                        {message.status === null && (
-                          <Timer className="ml-1 size-3 lg:size-3.5 mt-auto opacity-60 stroke-3 shrink-0" />
-                        )}
-                      </span>
+                        <span className="w-full flex h-fit">
+                          <p className="px-1">{message.text}</p>
+                          <p className="text-xs mt-auto ml-auto text-base-content/50">
+                            {formatMessageTimeForBubble(message?.createdAt)}
+                          </p>
+                        </span>
+                      </div>
                     </div>
-                    <span className="mt-auto rounded-t-sm rounded-r-sm -ml-1 inline-block w-0 h-0 border-solid border-t-10 border-r-0 border-l-10 border-b-0 border-l-base-300 border-r-transparent border-t-transparent border-b-transparent"></span>
                   </div>
                 </div>
-                <div className="h-full flex items-end shrink-0">
-                  <img
-                    src={authUser.profilePic}
-                    className="size-8 lg:size-10 rounded-full"
-                  />
+              </div>
+            ) : (
+              <div key={message.clientMsgId}>
+                {message?.repliedTo && (
+                  <div
+                    key={`${message._id}repliedTo`}
+                    className="mr-10 -mb-2 mt-2 opacity-60 message ml-auto flex gap-1 w-fit h-fit text-2sm"
+                  >
+                    <div className="flex flex-col">
+                      <p className="ml-auto text-sm">You replied</p>
+                      <div className="relative flex justify-end">
+                        <div className="p-1 w-fit rounded-md rounded-br-xs bg-base-300 wrap-anywhere ml-5 lg:ml-10">
+                          {message.repliedTo?.image && (
+                            <img
+                              className="w-30 lg:w-50 rounded-sm"
+                              src={message.repliedTo?.image}
+                            />
+                          )}
+                          <span className="w-full flex h-fit">
+                            <p className="px-1">{message.repliedTo?.text}</p>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <div
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setActiveMsg(message._id);
+                  }}
+                  className="message relative ml-auto flex gap-1 w-fit h-fit my-1 lg:my-2 text-2sm"
+                  onMouseDown={(e) => {
+                    e.stopPropagation();
+                    handleTouchStart(message._id);
+                  }}
+                  onMouseUp={handleTouchEnd}
+                  onTouchStart={(e) => {
+                    e.stopPropagation();
+                    handleTouchStart(message._id);
+                  }}
+                  onTouchEnd={handleTouchEnd}
+                >
+                  {activeMsg === message._id && (
+                    <span className="absolute flex gap-4 -bottom-5 -left-2 lg:left-10 z-25 rounded-full bg-base-200 p-1.5 px-4 border border-base-content/50">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsEditingMessage(true);
+                          setEditingMessageId(activeMsg);
+                          setTextMessage(message?.text || "");
+                        }}
+                        className="flex flex-col justify-center items-center"
+                      >
+                        <SquarePen className="size-6" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteMessage(message._id, selectedUser);
+                        }}
+                        className="flex flex-col justify-center items-center"
+                      >
+                        <Trash2 className="size-6 text-red-500" />
+                      </button>
+                    </span>
+                  )}
+                  <div className="relative flex flex-col">
+                    <p className="text-xs ml-auto mr-2">
+                      {formatMessageTime(message.createdAt)}
+                    </p>
+                    <button
+                      onClick={(e) => {
+                        setRepliedTo(message._id);
+                        setRepliedToMessage({
+                          text: message?.text,
+                          image: message?.image,
+                        });
+                      }}
+                      className="opacity-70 absolute mt-2 p-1 rounded-full hover:bg-base-300 hover:opacity-100 md:flex justify-center items-center top-[50%] -left-2 lg:left-2 -translate-y-1/2 mb-auto ml-auto"
+                    >
+                      <Forward className="size-5" />
+                    </button>
+                    <div className="flex justify-end">
+                      <div className="p-1 w-fit rounded-br-xs rounded-md bg-base-300 wrap-anywhere ml-5 lg:ml-10">
+                        {message?.image && (
+                          <div className="w-50 lg:w-70 relative rounded-sm overflow-hidden">
+                            <img
+                              onClick={() => {
+                                setIsVeiwingImage(true);
+                                setVeiwingImageSrc(message?.image);
+                              }}
+                              className="w-full cursor-pointer"
+                              src={message.image}
+                            />
+                            {!message?.createdAt && (
+                              <div className="absolute top-0 left-0 w-full h-full bg-base-300/20 backdrop-blur-sm flex justify-center items-center">
+                                <span className="loading loading-infinity loading-xl stroke-3 w-15"></span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        <span className="w-full flex h-fit">
+                          <p className="px-1">{message.text}</p>
+                          <p className="text-xs mt-auto ml-auto text-base-content/50 shrink-0">
+                            {formatMessageTimeForBubble(message?.createdAt)}
+                          </p>
+                          {message.status === "sent" && (
+                            <Check className="ml-1 size-3 lg:size-3.5 mt-auto opacity-60 stroke-3 shrink-0" />
+                          )}
+                          {message.status === "received" && (
+                            <CheckCheck className="ml-1 size-3 lg:size-3.5 mt-auto opacity-60 stroke-3 shrink-0" />
+                          )}
+                          {message.status === "seen" && (
+                            <CheckCheck className="ml-1 size-3 lg:size-3.5 mt-auto opacity-80 text-[#468aff] stroke-3 shrink-0" />
+                          )}
+                          {message.status === null && (
+                            <Timer className="ml-1 size-3 lg:size-3.5 mt-auto opacity-60 stroke-3 shrink-0" />
+                          )}
+                        </span>
+                      </div>
+                      <span className="mt-auto rounded-t-sm rounded-r-sm -ml-1 inline-block w-0 h-0 border-solid border-t-10 border-r-0 border-l-10 border-b-0 border-l-base-300 border-r-transparent border-t-transparent border-b-transparent"></span>
+                    </div>
+                  </div>
+                  <div className="h-full mt-auto flex items-end shrink-0">
+                    <img
+                      src={authUser.profilePic}
+                      className="size-8 lg:size-10 rounded-full"
+                    />
+                  </div>
                 </div>
               </div>
             );
@@ -497,6 +583,28 @@ function ChatArea({ setIsSearchingFriends }) {
           >
             <X />
           </button>
+        </div>
+      )}
+      {repliedTo && repliedToMessage && (
+        <div className="w-full flex flex-col gap-1 p-2 border-t border-base-content/30">
+          <div className="w-full flex justify-between">
+            <p>Replying To</p>
+            <button
+              onClick={() => {
+                setRepliedTo(null);
+                setTextMessage("");
+                setRepliedToMessage({});
+              }}
+            >
+              <X />
+            </button>
+          </div>
+          <div className="flex flex-col gap-1 w-full pl-2 opacity-80">
+            {repliedToMessage?.image && (
+              <img className="h-25 w-fit" src={repliedToMessage.image} />
+            )}
+            {repliedToMessage?.text && <p>{repliedToMessage.text}</p>}
+          </div>
         </div>
       )}
       <div className="w-full p-4 flex gap-1 justify-center items-center">

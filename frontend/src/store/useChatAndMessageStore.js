@@ -68,7 +68,7 @@ export const useChatAndMessageStore = create((set, get) => ({
 
   //function to send message to a specific user
   sendMessage: async (receiverId, message) => {
-    const { text, image } = message;
+    const { text, image, repliedTo } = message;
     if (!receiverId || (!text && !image)) return;
     const clientMsgId = uid(8);
     try {
@@ -92,6 +92,7 @@ export const useChatAndMessageStore = create((set, get) => ({
         text,
         image,
         clientMsgId,
+        repliedTo,
       });
     } catch (error) {
       console.log("Error in sending message: ", error);

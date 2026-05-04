@@ -25,6 +25,10 @@ export const getMessages = async (req, res) => {
         20 * (Number(scrolledTime || 0) || (Number.isNaN(scrolledTime) && 0)),
       )
       .limit(20)
+      .populate({
+        path: "repliedTo",
+        select: "text image",
+      })
       .lean();
 
     const messageUpdates = [];
@@ -67,18 +71,30 @@ export const sendMessage = async (req, res) => {
   const receiverId = req.params.id;
   const myId = req.user._id;
 
-  const { text, image, clientMsgId } = req.body;
+  const { text, image, clientMsgId, repliedTo, replyTo } = req.body;
+  const repliedToId = repliedTo ?? replyTo;
 
   if (!text && !image) {
     return res.status(400).json({ message: "Text or Image is required" });
   }
 
   try {
+    let repliedToMessage = null;
+    if (repliedToId) {
+      repliedToMessage = await Message.findById(repliedToId);
+
+      if (!repliedToMessage)
+        return res
+          .status(404)
+          .json({ message: "Message to reply does not exist" });
+    }
+
     const newMessage = new Message({
       senderId: myId,
       receiverId,
       clientMsgId,
       status: "sent",
+      repliedTo: repliedToId || null,
     });
 
     //uploading image url to cloudinary and adding the url to newMessage obj--
@@ -98,11 +114,22 @@ export const sendMessage = async (req, res) => {
 
     await newMessage.save();
 
+    const newMessageForResponse = {
+      ...newMessage.toObject(),
+      repliedTo:
+        (repliedToMessage && {
+          _id: repliedToId,
+          text: repliedToMessage?.text,
+          image: repliedToMessage?.image,
+        }) ||
+        null,
+    };
+
     //emiting the message if user is online
     const receiverSocketIds = await getSocketIds(receiverId.toString());
     if (receiverSocketIds?.length >= 1) {
       receiverSocketIds.forEach((socketId) => {
-        io.to(socketId).emit("newMessageReceived", newMessage);
+        io.to(socketId).emit("newMessageReceived", newMessageForResponse);
       });
     }
 
@@ -131,11 +158,12 @@ export const sendMessage = async (req, res) => {
     const senderSocketIds = await getSocketIds(myId.toString());
     if (senderSocketIds?.length >= 1) {
       senderSocketIds.forEach((socketId) => {
-        io.to(socketId).emit("newMessageSent", newMessage);
+        console.log(newMessageForResponse);
+        io.to(socketId).emit("newMessageSent", newMessageForResponse);
       });
     }
 
-    return res.status(201).json(newMessage);
+    return res.status(201).json(newMessageForResponse);
   } catch (error) {
     console.log("Error in sendMessage message-controller:", error.message);
     res.status(500).json({ message: "Internal server error!" });
@@ -159,7 +187,12 @@ export const editMessage = async (req, res) => {
       messageId,
       { text, status: "sent" },
       { returnDocument: "after" },
-    ).lean();
+    )
+      .populate({
+        path: "repliedTo",
+        select: "text image",
+      })
+      .lean();
 
     if (!updatedMessage)
       return res.status(404).json({ message: "message not found" });

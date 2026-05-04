@@ -37,6 +37,11 @@ const messageSchema = new Schema(
     seenAt: {
       type: Date,
     },
+    repliedTo: {
+      type: Schema.Types.ObjectId,
+      ref: "Message",
+      default: null,
+    },
   },
   { timestamps: true },
 );
