@@ -41,7 +41,7 @@ export const useAuthStore = create((set, get) => ({
       get().connectSocket();
       toast.success("Account created successfully");
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error?.response?.data?.message || error?.message);
       console.log("Error in sign-up fn: ", error);
       set({ authUser: null });
     } finally {
@@ -59,7 +59,7 @@ export const useAuthStore = create((set, get) => ({
       get().connectSocket();
       toast.success("Logged-in successfully");
     } catch (error) {
-      toast.error(error?.message);
+      toast.error(error?.response?.data?.message || error?.message);
       console.log("Error in login fn: ", error);
       set({ authUser: null });
     } finally {
@@ -75,7 +75,7 @@ export const useAuthStore = create((set, get) => ({
       get().disConnectSocket();
       toast.success("Logout successfully");
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error.message);
       console.log("Error in logout fn: ", error);
     }
   },
