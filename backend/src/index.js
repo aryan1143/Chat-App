@@ -11,6 +11,10 @@ import { io, app, server } from "./lib/socket.js";
 dotenv.config();
 const PORT = process.env.PORT;
 
+app.use("/health", (req, res) => {
+  res.send("server is running !");
+});
+
 //middleware to handle json-----
 app.use(express.json({ limit: "50mb" }));
 //middleware to parse the cookie
